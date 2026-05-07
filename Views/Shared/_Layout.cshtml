@@ -10,8 +10,15 @@
     <header class="topbar">
         <a class="brand" asp-controller="VehicleDeclarations" asp-action="Index">Déclarations véhicules</a>
         <nav class="nav-actions">
-            <a asp-controller="VehicleDeclarations" asp-action="Index">Tableau de bord</a>
-            <a class="button button-primary" asp-controller="VehicleDeclarations" asp-action="Create">Nouvelle déclaration</a>
+            @if (User.Identity?.IsAuthenticated == true)
+            {
+                <span class="user-pill">@User.Identity.Name</span>
+                <a asp-controller="VehicleDeclarations" asp-action="Index">Tableau de bord</a>
+                <a class="button button-primary" asp-controller="VehicleDeclarations" asp-action="Create">Nouvelle déclaration</a>
+                <form asp-controller="Account" asp-action="Logout" method="post" class="logout-form">
+                    <button class="button" type="submit">Déconnexion</button>
+                </form>
+            }
         </nav>
     </header>
     <main class="container">

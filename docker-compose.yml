@@ -23,14 +23,16 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: "Production"
       ConnectionStrings__DefaultConnection: "Server=db,1433;Database=VehicleDeclarationsDb;User Id=sa;Password=YourStrong!Passw0rd;Encrypt=True;TrustServerCertificate=True"
-      Uploads__RootPath: "/app/wwwroot/uploads"
+      Uploads__RootPath: "/app/storage/uploads"
+      Auth__DefaultEmail: "admin@example.com"
+      Auth__DefaultPassword: "Admin123!"
     ports:
       - "8080:8080"
     depends_on:
       db:
         condition: service_healthy
     volumes:
-      - app-uploads:/app/wwwroot/uploads
+      - app-uploads:/app/storage/uploads
 
 volumes:
   mssql-data:

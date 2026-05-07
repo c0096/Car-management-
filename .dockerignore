@@ -5,4 +5,6 @@ obj
 .vscode
 wwwroot/uploads/*
 !wwwroot/uploads/.gitkeep
+storage/uploads/*
+!storage/uploads/.gitkeep
 docker-compose.override.yml

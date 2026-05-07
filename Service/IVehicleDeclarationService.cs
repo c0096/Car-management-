@@ -14,5 +14,7 @@ public interface IVehicleDeclarationService
 
     Task DeleteAsync(int id);
 
+    Task<AttachmentFile?> GetAttachmentAsync(int declarationId, int attachmentId);
+
     Task<ReportFile> GenerateReportAsync(int id);
 }

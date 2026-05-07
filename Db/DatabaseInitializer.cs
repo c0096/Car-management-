@@ -30,6 +30,30 @@ public sealed class DatabaseInitializer(ISqlConnectionFactory connectionFactory)
     private static async Task ExecuteSchemaAsync(SqlConnection connection)
     {
         var commandText = """
+            IF OBJECT_ID('dbo.AppUsers', 'U') IS NULL
+            BEGIN
+                CREATE TABLE dbo.AppUsers
+                (
+                    Id INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+                    Email NVARCHAR(256) NOT NULL,
+                    NormalizedEmail NVARCHAR(256) NOT NULL,
+                    PasswordHash NVARCHAR(500) NOT NULL,
+                    CreatedAt DATETIME2 NOT NULL CONSTRAINT DF_AppUsers_CreatedAt DEFAULT SYSUTCDATETIME()
+                );
+            END;
+
+            IF NOT EXISTS
+            (
+                SELECT 1
+                FROM sys.indexes
+                WHERE name = 'UX_AppUsers_NormalizedEmail'
+                    AND object_id = OBJECT_ID('dbo.AppUsers')
+            )
+            BEGIN
+                CREATE UNIQUE INDEX UX_AppUsers_NormalizedEmail
+                ON dbo.AppUsers (NormalizedEmail);
+            END;
+
             IF OBJECT_ID('dbo.DeclarationAttachments', 'U') IS NULL
             BEGIN
                 CREATE TABLE dbo.DeclarationAttachments

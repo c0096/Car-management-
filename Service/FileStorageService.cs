@@ -39,19 +39,30 @@ public sealed class FileStorageService(IWebHostEnvironment environment, IOptions
                 StoredFileName = storedFileName,
                 ContentType = string.IsNullOrWhiteSpace(file.ContentType) ? "application/octet-stream" : file.ContentType,
                 SizeBytes = file.Length,
-                RelativePath = $"/uploads/{declarationId}/{storedFileName}"
+                RelativePath = $"{declarationId}/{storedFileName}"
             });
         }
 
         return attachments;
     }
 
+    public async Task<byte[]?> ReadAsync(DeclarationAttachment attachment)
+    {
+        var fullPath = ResolveFilePath(attachment);
+
+        if (!File.Exists(fullPath))
+        {
+            return null;
+        }
+
+        return await File.ReadAllBytesAsync(fullPath);
+    }
+
     public Task DeleteAsync(IReadOnlyList<DeclarationAttachment> attachments)
     {
         foreach (var attachment in attachments)
         {
-            var relativePath = attachment.RelativePath.TrimStart('/').Replace('/', Path.DirectorySeparatorChar);
-            var fullPath = Path.Combine(environment.WebRootPath, relativePath);
+            var fullPath = ResolveFilePath(attachment);
 
             if (File.Exists(fullPath))
             {
@@ -72,5 +83,17 @@ public sealed class FileStorageService(IWebHostEnvironment environment, IOptions
         }
 
         return Path.Combine(environment.ContentRootPath, configuredPath);
+    }
+
+    private string ResolveFilePath(DeclarationAttachment attachment)
+    {
+        if (attachment.RelativePath.StartsWith("/uploads/", StringComparison.OrdinalIgnoreCase))
+        {
+            var publicRelativePath = attachment.RelativePath.TrimStart('/').Replace('/', Path.DirectorySeparatorChar);
+            return Path.Combine(environment.WebRootPath, publicRelativePath);
+        }
+
+        var safeRelativePath = attachment.RelativePath.TrimStart('/').Replace('/', Path.DirectorySeparatorChar);
+        return Path.Combine(ResolveRootPath(), safeRelativePath);
     }
 }

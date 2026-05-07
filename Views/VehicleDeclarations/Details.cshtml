@@ -80,7 +80,7 @@
                     <ul class="attachment-links">
                         @foreach (var attachment in Model.Attachments)
                         {
-                            <li><a href="@attachment.RelativePath" target="_blank" rel="noopener">@attachment.OriginalFileName</a></li>
+                            <li><a asp-action="Attachment" asp-route-id="@Model.Id" asp-route-attachmentId="@attachment.Id">@attachment.OriginalFileName</a></li>
                         }
                     </ul>
                 }

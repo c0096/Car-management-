@@ -18,6 +18,7 @@ Fully dockerized monolithic ASP.NET Core MVC application for managing vehicle sa
 - Multiple file uploads per declaration
 - Downloadable PDF report per declaration
 - Printable official-style declaration view
+- Email and password authentication with protected declaration pages
 - Frontend validation and backend validation with data annotations
 - SQL schema initialization from the database container and application startup
 
@@ -68,6 +69,15 @@ Open the application at:
 http://localhost:8080
 ```
 
+Default application login:
+
+```text
+Email: admin@example.com
+Password: Admin123!
+```
+
+Change these credentials before first startup by editing `Auth__DefaultEmail` and `Auth__DefaultPassword` in `docker-compose.yml`. The app creates the default user only when the user table is empty.
+
 SQL Server is exposed at:
 
 ```text
@@ -87,11 +97,12 @@ Password: YourStrong!Passw0rd
 The database container builds from `db/Dockerfile` and runs `db/init.sql` on first startup. The script creates:
 
 - `VehicleDeclarationsDb`
+- `dbo.AppUsers`
 - `dbo.VehicleSaleDeclarations`
 - `dbo.DeclarationAttachments`
 - supporting indexes and foreign key constraints
 
-The application also checks the required schema at startup for resilience.
+The application also checks the required schema at startup for resilience and seeds the configured default login when no user exists.
 
 ## Local development without compose
 
@@ -99,6 +110,8 @@ Install the .NET 8 SDK and run SQL Server locally, then set the connection strin
 
 ```bash
 export ConnectionStrings__DefaultConnection="Server=localhost,1433;Database=VehicleDeclarationsDb;User Id=sa;Password=YourStrong!Passw0rd;Encrypt=True;TrustServerCertificate=True"
+export Auth__DefaultEmail="admin@example.com"
+export Auth__DefaultPassword="Admin123!"
 dotnet restore
 dotnet run
 ```
@@ -108,10 +121,10 @@ dotnet run
 Uploaded files are stored under:
 
 ```text
-wwwroot/uploads
+storage/uploads
 ```
 
-In Docker, uploads are persisted in the `app-uploads` volume.
+In Docker, uploads are persisted in the `app-uploads` volume and downloaded through authenticated MVC actions.
 
 ## PDF reports
 

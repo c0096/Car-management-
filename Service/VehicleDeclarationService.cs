@@ -56,6 +56,25 @@ public sealed class VehicleDeclarationService(
         await fileStorageService.DeleteAsync(declaration.Attachments);
     }
 
+    public async Task<AttachmentFile?> GetAttachmentAsync(int declarationId, int attachmentId)
+    {
+        var attachment = (await repository.GetAttachmentsByIdsAsync([attachmentId])).SingleOrDefault();
+
+        if (attachment is null || attachment.DeclarationId != declarationId)
+        {
+            return null;
+        }
+
+        var content = await fileStorageService.ReadAsync(attachment);
+
+        if (content is null)
+        {
+            return null;
+        }
+
+        return new AttachmentFile(attachment.OriginalFileName, attachment.ContentType, content);
+    }
+
     public async Task<ReportFile> GenerateReportAsync(int id)
     {
         var declaration = await repository.GetByIdAsync(id) ?? throw new KeyNotFoundException("Declaration not found.");

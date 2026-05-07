@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using VehicleDeclarations.Entity;
 using VehicleDeclarations.Service;
@@ -5,6 +6,7 @@ using VehicleDeclarations.ViewModels;
 
 namespace VehicleDeclarations.Controllers;
 
+[Authorize]
 public sealed class VehicleDeclarationsController(IVehicleDeclarationService service) : Controller
 {
     public async Task<IActionResult> Index([FromQuery] SearchOptions options)
@@ -115,5 +117,17 @@ public sealed class VehicleDeclarationsController(IVehicleDeclarationService ser
         {
             return NotFound();
         }
+    }
+
+    public async Task<IActionResult> Attachment(int id, int attachmentId)
+    {
+        var attachment = await service.GetAttachmentAsync(id, attachmentId);
+
+        if (attachment is null)
+        {
+            return NotFound();
+        }
+
+        return File(attachment.Content, attachment.ContentType, attachment.FileName);
     }
 }

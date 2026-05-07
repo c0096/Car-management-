@@ -1,0 +1,30 @@
+@model LoginViewModel
+
+@{
+    ViewData["Title"] = "Connexion";
+}
+
+<section class="auth-shell">
+    <div class="auth-card card">
+        <div class="auth-heading">
+            <p class="eyebrow">Authentification</p>
+            <h1>Connexion</h1>
+            <p>Connectez-vous pour accéder au tableau de bord des déclarations.</p>
+        </div>
+        <form asp-action="Login" method="post" data-validate="true">
+            <input asp-for="ReturnUrl" type="hidden" />
+            <div asp-validation-summary="ModelOnly" class="validation-summary"></div>
+            <label>
+                <span asp-for="Email"></span>
+                <input asp-for="Email" autocomplete="username" />
+                <span asp-validation-for="Email" class="field-validation"></span>
+            </label>
+            <label>
+                <span asp-for="Password"></span>
+                <input asp-for="Password" autocomplete="current-password" />
+                <span asp-validation-for="Password" class="field-validation"></span>
+            </label>
+            <button class="button button-primary" type="submit">Se connecter</button>
+        </form>
+    </div>
+</section>
