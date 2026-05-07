@@ -33,7 +33,7 @@ public sealed class VehicleDeclarationRepository(ISqlConnectionFactory connectio
         var countSql = $"SELECT COUNT(1) FROM dbo.VehicleSaleDeclarations d {whereClause}";
         await using var countCommand = new SqlCommand(countSql, connection);
         AddSearchParameter(countCommand, options.Search);
-        var totalItems = (int)await countCommand.ExecuteScalarAsync();
+        var totalItems = Convert.ToInt32(await countCommand.ExecuteScalarAsync());
 
         var sql = $"""
             SELECT
@@ -212,7 +212,7 @@ public sealed class VehicleDeclarationRepository(ISqlConnectionFactory connectio
 
         await using var command = new SqlCommand(sql, connection);
         AddDeclarationParameters(command, declaration);
-        return (int)await command.ExecuteScalarAsync();
+        return Convert.ToInt32(await command.ExecuteScalarAsync());
     }
 
     public async Task UpdateAsync(VehicleSaleDeclaration declaration)
