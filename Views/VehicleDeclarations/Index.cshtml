@@ -1,0 +1,95 @@
+@model DeclarationIndexViewModel
+
+@{
+    ViewData["Title"] = "Tableau de bord";
+    var start = Model.Results.TotalItems == 0 ? 0 : ((Model.Results.Page - 1) * Model.Results.PageSize) + 1;
+    var end = Math.Min(Model.Results.Page * Model.Results.PageSize, Model.Results.TotalItems);
+}
+
+<div class="dashboard-hero">
+    <div>
+        <p class="eyebrow">Administration</p>
+        <h1>Déclarations de vente de véhicules</h1>
+        <p>Gérez les dossiers, pièces jointes et rapports PDF depuis une interface centralisée.</p>
+    </div>
+    <a class="button button-primary" asp-action="Create">Nouvelle déclaration</a>
+</div>
+
+<form method="get" class="search-card">
+    <div class="search-input">
+        <span>Recherche globale</span>
+        <input name="Search" value="@Model.Options.Search" placeholder="Rechercher dans tous les champs" />
+    </div>
+    <input type="hidden" name="Sort" value="@Model.Options.Sort" />
+    <input type="hidden" name="Direction" value="@Model.Options.Direction" />
+    <label>
+        <span>Taille page</span>
+        <select name="PageSize">
+            @foreach (var size in new[] { 10, 20, 50, 100 })
+            {
+                <option value="@size" selected="@(Model.Options.PageSize == size)">@size</option>
+            }
+        </select>
+    </label>
+    <button class="button button-primary" type="submit">Rechercher</button>
+    <a class="button" asp-action="Index">Réinitialiser</a>
+</form>
+
+<section class="card table-card">
+    <div class="table-summary">
+        <strong>@Model.Results.TotalItems déclaration(s)</strong>
+        <span>Affichage @start à @end</span>
+    </div>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th><a asp-action="Index" asp-route-Search="@Model.Options.Search" asp-route-Sort="order" asp-route-Direction="@Model.NextDirectionFor("order")" asp-route-PageSize="@Model.Options.PageSize">N° ordre</a></th>
+                    <th><a asp-action="Index" asp-route-Search="@Model.Options.Search" asp-route-Sort="date" asp-route-Direction="@Model.NextDirectionFor("date")" asp-route-PageSize="@Model.Options.PageSize">Date</a></th>
+                    <th><a asp-action="Index" asp-route-Search="@Model.Options.Search" asp-route-Sort="seller" asp-route-Direction="@Model.NextDirectionFor("seller")" asp-route-PageSize="@Model.Options.PageSize">Vendeur</a></th>
+                    <th><a asp-action="Index" asp-route-Search="@Model.Options.Search" asp-route-Sort="buyer" asp-route-Direction="@Model.NextDirectionFor("buyer")" asp-route-PageSize="@Model.Options.PageSize">Acheteur</a></th>
+                    <th><a asp-action="Index" asp-route-Search="@Model.Options.Search" asp-route-Sort="vehicle" asp-route-Direction="@Model.NextDirectionFor("vehicle")" asp-route-PageSize="@Model.Options.PageSize">Véhicule</a></th>
+                    <th><a asp-action="Index" asp-route-Search="@Model.Options.Search" asp-route-Sort="city" asp-route-Direction="@Model.NextDirectionFor("city")" asp-route-PageSize="@Model.Options.PageSize">Ville</a></th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Results.Items.Count == 0)
+                {
+                    <tr>
+                        <td colspan="7" class="empty-state">Aucune déclaration trouvée.</td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var declaration in Model.Results.Items)
+                    {
+                        <tr>
+                            <td>@declaration.OrderNumber</td>
+                            <td>@declaration.DeclarationDateTime.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td>@declaration.SellerName</td>
+                            <td>@declaration.BuyerName</td>
+                            <td>@declaration.VehicleBrand @declaration.VehicleType</td>
+                            <td>@declaration.City</td>
+                            <td class="row-actions">
+                                <a asp-action="Details" asp-route-id="@declaration.Id">Voir</a>
+                                <a asp-action="Edit" asp-route-id="@declaration.Id">Modifier</a>
+                                <a asp-action="Report" asp-route-id="@declaration.Id">PDF</a>
+                                <a class="danger-link" asp-action="Delete" asp-route-id="@declaration.Id">Supprimer</a>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+    <div class="pagination">
+        @{
+            var previousDisabled = Model.Results.Page <= 1 ? "disabled" : string.Empty;
+            var nextDisabled = Model.Results.Page >= Model.Results.TotalPages ? "disabled" : string.Empty;
+        }
+        <a class="button @previousDisabled" asp-action="Index" asp-route-Search="@Model.Options.Search" asp-route-Sort="@Model.Options.Sort" asp-route-Direction="@Model.Options.Direction" asp-route-Page="@(Model.Results.Page - 1)" asp-route-PageSize="@Model.Options.PageSize">Précédent</a>
+        <span>Page @Model.Results.Page / @Model.Results.TotalPages</span>
+        <a class="button @nextDisabled" asp-action="Index" asp-route-Search="@Model.Options.Search" asp-route-Sort="@Model.Options.Sort" asp-route-Direction="@Model.Options.Direction" asp-route-Page="@(Model.Results.Page + 1)" asp-route-PageSize="@Model.Options.PageSize">Suivant</a>
+    </div>
+</section>

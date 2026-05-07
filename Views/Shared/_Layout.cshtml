@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Déclarations véhicules</title>
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+    <header class="topbar">
+        <a class="brand" asp-controller="VehicleDeclarations" asp-action="Index">Déclarations véhicules</a>
+        <nav class="nav-actions">
+            <a asp-controller="VehicleDeclarations" asp-action="Index">Tableau de bord</a>
+            <a class="button button-primary" asp-controller="VehicleDeclarations" asp-action="Create">Nouvelle déclaration</a>
+        </nav>
+    </header>
+    <main class="container">
+        @RenderBody()
+    </main>
+    <script src="~/js/validation.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

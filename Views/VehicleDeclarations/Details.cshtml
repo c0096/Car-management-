@@ -1,0 +1,108 @@
+@model VehicleSaleDeclaration
+
+@{
+    ViewData["Title"] = "Détail de la déclaration";
+}
+
+<div class="page-heading">
+    <div>
+        <p class="eyebrow">Dossier @Model.OrderNumber</p>
+        <h1>Déclaration de vente</h1>
+    </div>
+    <div class="header-actions">
+        <a class="button button-primary" asp-action="Report" asp-route-id="@Model.Id">Télécharger PDF</a>
+        <a class="button" asp-action="Edit" asp-route-id="@Model.Id">Modifier</a>
+        <a class="button" asp-action="Index">Retour</a>
+    </div>
+</div>
+
+<article class="official-report card">
+    <div class="report-title">
+        <span>Formulaire administratif</span>
+        <h2>Déclaration de vente de véhicule</h2>
+        <p>N° ordre @Model.OrderNumber</p>
+    </div>
+
+    <section>
+        <h3>Informations du rédacteur</h3>
+        <dl class="details-grid">
+            <dt>Nom du rédacteur</dt><dd>@Model.WriterName</dd>
+            <dt>Numéro autorisation</dt><dd>@Model.AuthorizationNumber</dd>
+            <dt>Téléphone du rédacteur</dt><dd>@Model.WriterPhone</dd>
+            <dt>Ville</dt><dd>@Model.City</dd>
+            <dt>Date / Heure</dt><dd>@Model.DeclarationDateTime.ToString("dd/MM/yyyy HH:mm")</dd>
+        </dl>
+    </section>
+
+    <section>
+        <h3>Informations du vendeur</h3>
+        <dl class="details-grid">
+            <dt>Nom du vendeur</dt><dd>@Model.SellerName</dd>
+            <dt>Adresse</dt><dd>@Model.SellerAddress</dd>
+            <dt>N° CIN du vendeur</dt><dd>@Model.SellerCin</dd>
+            <dt>Téléphone du vendeur</dt><dd>@Model.SellerPhone</dd>
+        </dl>
+    </section>
+
+    <section>
+        <h3>Déclaration et véhicule</h3>
+        <dl class="details-grid">
+            <dt>Déclare avoir vendu</dt><dd>@Model.SoldItemDescription</dd>
+            <dt>Titre de propriété</dt><dd>@Model.PropertyTitle</dd>
+            <dt>Type</dt><dd>@Model.VehicleType</dd>
+            <dt>Marque</dt><dd>@Model.VehicleBrand</dd>
+            <dt>Numéro châssis</dt><dd>@Model.ChassisNumber</dd>
+        </dl>
+    </section>
+
+    <section>
+        <h3>Informations de l'acheteur</h3>
+        <dl class="details-grid">
+            <dt>Nom de l'acheteur</dt><dd>@Model.BuyerName</dd>
+            <dt>Adresse de l'acheteur</dt><dd>@Model.BuyerAddress</dd>
+            <dt>N° CIN de l'acheteur</dt><dd>@Model.BuyerCin</dd>
+            <dt>Téléphone de l'acheteur</dt><dd>@Model.BuyerPhone</dd>
+        </dl>
+    </section>
+
+    <section>
+        <h3>Documents et observation</h3>
+        <dl class="details-grid">
+            <dt>Observation</dt><dd>@(string.IsNullOrWhiteSpace(Model.Observation) ? "Aucune" : Model.Observation)</dd>
+            <dt>Pièces jointes</dt>
+            <dd>
+                @if (Model.Attachments.Count == 0)
+                {
+                    <span>Aucune pièce jointe</span>
+                }
+                else
+                {
+                    <ul class="attachment-links">
+                        @foreach (var attachment in Model.Attachments)
+                        {
+                            <li><a href="@attachment.RelativePath" target="_blank" rel="noopener">@attachment.OriginalFileName</a></li>
+                        }
+                    </ul>
+                }
+            </dd>
+        </dl>
+    </section>
+
+    <section>
+        <h3>Signatures</h3>
+        <div class="signature-grid">
+            <div>
+                <span>Signature du vendeur</span>
+                <strong>@Model.SellerSignature</strong>
+            </div>
+            <div>
+                <span>Signature du gérant</span>
+                <strong>@Model.ManagerSignature</strong>
+            </div>
+            <div>
+                <span>Signature de l'acheteur</span>
+                <strong>@Model.BuyerSignature</strong>
+            </div>
+        </div>
+    </section>
+</article>

@@ -1,0 +1,21 @@
+@model VehicleSaleDeclaration
+
+@{
+    ViewData["Title"] = "Nouvelle déclaration";
+}
+
+<div class="page-heading">
+    <div>
+        <p class="eyebrow">Création</p>
+        <h1>Nouvelle déclaration de vente</h1>
+    </div>
+    <a class="button" asp-action="Index">Retour</a>
+</div>
+
+<form asp-action="Create" method="post" enctype="multipart/form-data" class="card form-card" data-validate="true">
+    <partial name="_DeclarationForm" model="Model" />
+    <div class="form-actions">
+        <button class="button button-primary" type="submit">Enregistrer</button>
+        <a class="button" asp-action="Index">Annuler</a>
+    </div>
+</form>

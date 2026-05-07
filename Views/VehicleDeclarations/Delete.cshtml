@@ -1,0 +1,29 @@
+@model VehicleSaleDeclaration
+
+@{
+    ViewData["Title"] = "Supprimer la déclaration";
+}
+
+<div class="page-heading">
+    <div>
+        <p class="eyebrow">Suppression</p>
+        <h1>Supprimer la déclaration @Model.OrderNumber</h1>
+    </div>
+    <a class="button" asp-action="Details" asp-route-id="@Model.Id">Retour</a>
+</div>
+
+<section class="card delete-card">
+    <h2>Confirmer la suppression</h2>
+    <p>Cette action supprimera définitivement la déclaration et ses pièces jointes.</p>
+    <dl class="details-grid">
+        <dt>Vendeur</dt><dd>@Model.SellerName</dd>
+        <dt>Acheteur</dt><dd>@Model.BuyerName</dd>
+        <dt>Véhicule</dt><dd>@Model.VehicleBrand @Model.VehicleType</dd>
+        <dt>Numéro châssis</dt><dd>@Model.ChassisNumber</dd>
+    </dl>
+    <form asp-action="Delete" asp-route-id="@Model.Id" method="post" class="form-actions">
+        <input type="hidden" asp-for="Id" />
+        <button class="button button-danger" type="submit">Supprimer</button>
+        <a class="button" asp-action="Details" asp-route-id="@Model.Id">Annuler</a>
+    </form>
+</section>
