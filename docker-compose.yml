@@ -34,6 +34,17 @@ services:
     volumes:
       - app-uploads:/app/storage/uploads
 
+  adminer:
+    build:
+      context: ./adminer
+    environment:
+      ADMINER_DEFAULT_SERVER: "db"
+    ports:
+      - "8081:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+
 volumes:
   mssql-data:
   app-uploads:

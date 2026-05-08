@@ -69,6 +69,22 @@ Open the application at:
 http://localhost:8080
 ```
 
+Open Adminer for database browsing at:
+
+```text
+http://localhost:8081
+```
+
+Use these Adminer values:
+
+```text
+System: MS SQL
+Server: db
+Username: sa
+Password: YourStrong!Passw0rd
+Database: VehicleDeclarationsDb
+```
+
 Default application login:
 
 ```text
