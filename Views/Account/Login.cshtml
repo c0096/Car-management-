@@ -15,12 +15,12 @@
             <input asp-for="ReturnUrl" type="hidden" />
             <div asp-validation-summary="ModelOnly" class="validation-summary"></div>
             <label>
-                <span asp-for="Email"></span>
+                <span>@Html.DisplayNameFor(model => model.Email)</span>
                 <input asp-for="Email" autocomplete="username" />
                 <span asp-validation-for="Email" class="field-validation"></span>
             </label>
             <label>
-                <span asp-for="Password"></span>
+                <span>@Html.DisplayNameFor(model => model.Password)</span>
                 <input asp-for="Password" autocomplete="current-password" />
                 <span asp-validation-for="Password" class="field-validation"></span>
             </label>

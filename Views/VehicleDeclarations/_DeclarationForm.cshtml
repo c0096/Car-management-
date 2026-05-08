@@ -6,27 +6,27 @@
     <h2>Informations du rédacteur</h2>
     <div class="form-grid">
         <label>
-            <span asp-for="WriterName"></span>
+            <span>@Html.DisplayNameFor(model => model.WriterName)</span>
             <input asp-for="WriterName" />
             <span asp-validation-for="WriterName" class="field-validation"></span>
         </label>
         <label>
-            <span asp-for="AuthorizationNumber"></span>
+            <span>@Html.DisplayNameFor(model => model.AuthorizationNumber)</span>
             <input asp-for="AuthorizationNumber" />
             <span asp-validation-for="AuthorizationNumber" class="field-validation"></span>
         </label>
         <label>
-            <span asp-for="WriterPhone"></span>
+            <span>@Html.DisplayNameFor(model => model.WriterPhone)</span>
             <input asp-for="WriterPhone" />
             <span asp-validation-for="WriterPhone" class="field-validation"></span>
         </label>
         <label>
-            <span asp-for="City"></span>
+            <span>@Html.DisplayNameFor(model => model.City)</span>
             <input asp-for="City" />
             <span asp-validation-for="City" class="field-validation"></span>
         </label>
         <label>
-            <span asp-for="DeclarationDateTime"></span>
+            <span>@Html.DisplayNameFor(model => model.DeclarationDateTime)</span>
             <input asp-for="DeclarationDateTime" type="datetime-local" value="@Model.DeclarationDateTime.ToString("yyyy-MM-ddTHH:mm")" />
             <span asp-validation-for="DeclarationDateTime" class="field-validation"></span>
         </label>
@@ -37,22 +37,22 @@
     <h2>Informations du vendeur</h2>
     <div class="form-grid">
         <label>
-            <span asp-for="SellerName"></span>
+            <span>@Html.DisplayNameFor(model => model.SellerName)</span>
             <input asp-for="SellerName" />
             <span asp-validation-for="SellerName" class="field-validation"></span>
         </label>
         <label>
-            <span asp-for="SellerAddress"></span>
+            <span>@Html.DisplayNameFor(model => model.SellerAddress)</span>
             <input asp-for="SellerAddress" />
             <span asp-validation-for="SellerAddress" class="field-validation"></span>
         </label>
         <label>
-            <span asp-for="SellerCin"></span>
+            <span>@Html.DisplayNameFor(model => model.SellerCin)</span>
             <input asp-for="SellerCin" />
             <span asp-validation-for="SellerCin" class="field-validation"></span>
         </label>
         <label>
-            <span asp-for="SellerPhone"></span>
+            <span>@Html.DisplayNameFor(model => model.SellerPhone)</span>
             <input asp-for="SellerPhone" />
             <span asp-validation-for="SellerPhone" class="field-validation"></span>
         </label>
@@ -63,12 +63,12 @@
     <h2>Déclaration de vente</h2>
     <div class="form-grid">
         <label>
-            <span asp-for="SoldItemDescription"></span>
+            <span>@Html.DisplayNameFor(model => model.SoldItemDescription)</span>
             <input asp-for="SoldItemDescription" />
             <span asp-validation-for="SoldItemDescription" class="field-validation"></span>
         </label>
         <label>
-            <span asp-for="OrderNumber"></span>
+            <span>@Html.DisplayNameFor(model => model.OrderNumber)</span>
             <input asp-for="OrderNumber" />
             <span asp-validation-for="OrderNumber" class="field-validation"></span>
         </label>
@@ -79,17 +79,17 @@
     <h2>Informations du véhicule</h2>
     <div class="form-grid">
         <label>
-            <span asp-for="VehicleType"></span>
+            <span>@Html.DisplayNameFor(model => model.VehicleType)</span>
             <input asp-for="VehicleType" />
             <span asp-validation-for="VehicleType" class="field-validation"></span>
         </label>
         <label>
-            <span asp-for="VehicleBrand"></span>
+            <span>@Html.DisplayNameFor(model => model.VehicleBrand)</span>
             <input asp-for="VehicleBrand" />
             <span asp-validation-for="VehicleBrand" class="field-validation"></span>
         </label>
         <label>
-            <span asp-for="ChassisNumber"></span>
+            <span>@Html.DisplayNameFor(model => model.ChassisNumber)</span>
             <input asp-for="ChassisNumber" />
             <span asp-validation-for="ChassisNumber" class="field-validation"></span>
         </label>
@@ -100,22 +100,22 @@
     <h2>Informations de l'acheteur</h2>
     <div class="form-grid">
         <label>
-            <span asp-for="BuyerName"></span>
+            <span>@Html.DisplayNameFor(model => model.BuyerName)</span>
             <input asp-for="BuyerName" />
             <span asp-validation-for="BuyerName" class="field-validation"></span>
         </label>
         <label>
-            <span asp-for="BuyerAddress"></span>
+            <span>@Html.DisplayNameFor(model => model.BuyerAddress)</span>
             <input asp-for="BuyerAddress" />
             <span asp-validation-for="BuyerAddress" class="field-validation"></span>
         </label>
         <label>
-            <span asp-for="BuyerCin"></span>
+            <span>@Html.DisplayNameFor(model => model.BuyerCin)</span>
             <input asp-for="BuyerCin" />
             <span asp-validation-for="BuyerCin" class="field-validation"></span>
         </label>
         <label>
-            <span asp-for="BuyerPhone"></span>
+            <span>@Html.DisplayNameFor(model => model.BuyerPhone)</span>
             <input asp-for="BuyerPhone" />
             <span asp-validation-for="BuyerPhone" class="field-validation"></span>
         </label>
@@ -126,7 +126,7 @@
     <h2>Documents et métadonnées</h2>
     <div class="form-grid">
         <label>
-            <span asp-for="PropertyTitle"></span>
+            <span>@Html.DisplayNameFor(model => model.PropertyTitle)</span>
             <input asp-for="PropertyTitle" />
             <span asp-validation-for="PropertyTitle" class="field-validation"></span>
         </label>
@@ -135,7 +135,7 @@
             <input type="file" name="attachmentFiles" multiple />
         </label>
         <label class="wide-field">
-            <span asp-for="Observation"></span>
+            <span>@Html.DisplayNameFor(model => model.Observation)</span>
             <textarea asp-for="Observation" rows="4"></textarea>
             <span asp-validation-for="Observation" class="field-validation"></span>
         </label>
@@ -159,17 +159,17 @@
     <h2>Signatures</h2>
     <div class="form-grid">
         <label>
-            <span asp-for="SellerSignature"></span>
+            <span>@Html.DisplayNameFor(model => model.SellerSignature)</span>
             <input asp-for="SellerSignature" />
             <span asp-validation-for="SellerSignature" class="field-validation"></span>
         </label>
         <label>
-            <span asp-for="ManagerSignature"></span>
+            <span>@Html.DisplayNameFor(model => model.ManagerSignature)</span>
             <input asp-for="ManagerSignature" />
             <span asp-validation-for="ManagerSignature" class="field-validation"></span>
         </label>
         <label>
-            <span asp-for="BuyerSignature"></span>
+            <span>@Html.DisplayNameFor(model => model.BuyerSignature)</span>
             <input asp-for="BuyerSignature" />
             <span asp-validation-for="BuyerSignature" class="field-validation"></span>
         </label>
