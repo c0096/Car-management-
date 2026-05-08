@@ -144,4 +144,4 @@ In Docker, uploads are persisted in the `app-uploads` volume and downloaded thro
 
 ## PDF reports
 
-Each declaration detail page includes a PDF download action. The report contains all declaration fields, attachment names, observations, and signature values in an administrative form layout.
+Each declaration detail page includes a PDF download action. The report is generated as a compact one-page A4 administrative form with declaration fields, attachment names, observations, and signature values.

@@ -5,115 +5,195 @@ namespace VehicleDeclarations.Service;
 
 public sealed class PdfReportService : IPdfReportService
 {
-    private const int MaxLinesPerPage = 38;
+    private const double PageWidth = 595;
+    private const double PageHeight = 842;
+    private const double Margin = 28;
+    private const double ContentWidth = PageWidth - Margin * 2;
+    private const double SectionHeaderHeight = 18;
+    private const double DefaultRowHeight = 31;
 
     public byte[] Generate(VehicleSaleDeclaration declaration)
     {
-        var lines = BuildReportLines(declaration);
-        var pages = lines.Chunk(MaxLinesPerPage).Select(chunk => chunk.ToArray()).ToArray();
-        return BuildPdf(pages);
+        return BuildPdf(BuildPageContent(declaration));
     }
 
-    private static List<ReportLine> BuildReportLines(VehicleSaleDeclaration declaration)
+    private static string BuildPageContent(VehicleSaleDeclaration declaration)
     {
-        var lines = new List<ReportLine>
-        {
-            ReportLine.Title("Declaration de vente de vehicule"),
-            ReportLine.Text($"Numero d'ordre: {declaration.OrderNumber}"),
-            ReportLine.Text($"Ville: {declaration.City}"),
-            ReportLine.Text($"Date / Heure: {declaration.DeclarationDateTime:dd/MM/yyyy HH:mm}"),
-            ReportLine.Space(),
-            ReportLine.Section("Informations du redacteur"),
-            ReportLine.Text($"Nom du redacteur: {declaration.WriterName}"),
-            ReportLine.Text($"Numero autorisation: {declaration.AuthorizationNumber}"),
-            ReportLine.Text($"Telephone du redacteur: {declaration.WriterPhone}"),
-            ReportLine.Space(),
-            ReportLine.Section("Informations du vendeur"),
-            ReportLine.Text($"Nom du vendeur: {declaration.SellerName}"),
-            ReportLine.Text($"Adresse: {declaration.SellerAddress}"),
-            ReportLine.Text($"CIN du vendeur: {declaration.SellerCin}"),
-            ReportLine.Text($"Telephone du vendeur: {declaration.SellerPhone}"),
-            ReportLine.Space(),
-            ReportLine.Section("Declaration de vente"),
-            ReportLine.Text($"Declare avoir vendu: {declaration.SoldItemDescription}"),
-            ReportLine.Text($"Titre de propriete: {declaration.PropertyTitle}"),
-            ReportLine.Space(),
-            ReportLine.Section("Informations du vehicule"),
-            ReportLine.Text($"Type: {declaration.VehicleType}"),
-            ReportLine.Text($"Marque: {declaration.VehicleBrand}"),
-            ReportLine.Text($"Numero chassis: {declaration.ChassisNumber}"),
-            ReportLine.Space(),
-            ReportLine.Section("Informations de l'acheteur"),
-            ReportLine.Text($"Nom de l'acheteur: {declaration.BuyerName}"),
-            ReportLine.Text($"Adresse de l'acheteur: {declaration.BuyerAddress}"),
-            ReportLine.Text($"CIN de l'acheteur: {declaration.BuyerCin}"),
-            ReportLine.Text($"Telephone de l'acheteur: {declaration.BuyerPhone}"),
-            ReportLine.Space(),
-            ReportLine.Section("Documents et observation")
-        };
+        var builder = new StringBuilder();
+        var y = PageHeight - Margin;
 
-        lines.AddRange(Wrap($"Observation: {declaration.Observation ?? "Aucune"}", 92).Select(ReportLine.Text));
+        DrawRectangle(builder, Margin, Margin, ContentWidth, PageHeight - Margin * 2);
+        DrawCenteredText(builder, "F2", 16, y - 8, "DECLARATION DE VENTE DE VEHICULE");
+        DrawCenteredText(builder, "F1", 8, y - 23, "Formulaire administratif officiel");
+        y -= 40;
 
-        if (declaration.Attachments.Count == 0)
-        {
-            lines.Add(ReportLine.Text("Pieces jointes: Aucune"));
-        }
-        else
-        {
-            lines.Add(ReportLine.Text("Pieces jointes:"));
-
-            foreach (var attachment in declaration.Attachments)
-            {
-                lines.AddRange(Wrap($"- {attachment.OriginalFileName} ({FormatFileSize(attachment.SizeBytes)})", 92).Select(ReportLine.Text));
-            }
-        }
-
-        lines.AddRange(
+        y = DrawTopSummary(builder, y, declaration);
+        y -= 6;
+        y = DrawSection(builder, y, "Informations du redacteur", 2, DefaultRowHeight,
         [
-            ReportLine.Space(),
-            ReportLine.Section("Signatures"),
-            ReportLine.Text($"Signature du vendeur: {declaration.SellerSignature}"),
-            ReportLine.Text($"Signature du gerant: {declaration.ManagerSignature}"),
-            ReportLine.Text($"Signature de l'acheteur: {declaration.BuyerSignature}"),
-            ReportLine.Space(),
-            ReportLine.Text("Document imprime depuis le registre des declarations de vente.")
+            new FieldValue("Nom du redacteur", declaration.WriterName),
+            new FieldValue("Numero autorisation", declaration.AuthorizationNumber),
+            new FieldValue("Telephone", declaration.WriterPhone),
+            new FieldValue("Ville", declaration.City),
+            new FieldValue("Date / Heure", declaration.DeclarationDateTime.ToString("dd/MM/yyyy HH:mm"))
         ]);
+        y -= 6;
+        y = DrawSection(builder, y, "Informations du vendeur", 2, DefaultRowHeight,
+        [
+            new FieldValue("Nom du vendeur", declaration.SellerName),
+            new FieldValue("Adresse", declaration.SellerAddress),
+            new FieldValue("N CIN du vendeur", declaration.SellerCin),
+            new FieldValue("Telephone", declaration.SellerPhone)
+        ]);
+        y -= 6;
+        y = DrawSection(builder, y, "Declaration et vehicule", 3, DefaultRowHeight,
+        [
+            new FieldValue("Declare avoir vendu", declaration.SoldItemDescription),
+            new FieldValue("Numero d'ordre", declaration.OrderNumber),
+            new FieldValue("Titre de propriete", declaration.PropertyTitle),
+            new FieldValue("Type", declaration.VehicleType),
+            new FieldValue("Marque", declaration.VehicleBrand),
+            new FieldValue("Numero chassis", declaration.ChassisNumber)
+        ]);
+        y -= 6;
+        y = DrawSection(builder, y, "Informations de l'acheteur", 2, DefaultRowHeight,
+        [
+            new FieldValue("Nom de l'acheteur", declaration.BuyerName),
+            new FieldValue("Adresse", declaration.BuyerAddress),
+            new FieldValue("N CIN de l'acheteur", declaration.BuyerCin),
+            new FieldValue("Telephone", declaration.BuyerPhone)
+        ]);
+        y -= 6;
+        y = DrawSection(builder, y, "Documents et observation", 1, 35,
+        [
+            new FieldValue("Observation", string.IsNullOrWhiteSpace(declaration.Observation) ? "Aucune" : declaration.Observation),
+            new FieldValue("Pieces jointes", SummarizeAttachments(declaration.Attachments))
+        ], 2);
+        y -= 8;
+        DrawSignatures(builder, y, declaration);
 
-        return lines;
+        return builder.ToString();
     }
 
-    private static byte[] BuildPdf(IReadOnlyList<IReadOnlyList<ReportLine>> pages)
+    private static double DrawTopSummary(StringBuilder builder, double top, VehicleSaleDeclaration declaration)
     {
-        var objectCount = 4 + pages.Count * 2;
-        var fontObject = objectCount - 1;
-        var boldFontObject = objectCount;
+        var rowHeight = 27;
+        var bottom = top - rowHeight;
+        var cellWidth = ContentWidth / 3;
+
+        DrawFilledRectangle(builder, Margin, bottom, ContentWidth, rowHeight, "0.93 0.96 1");
+        DrawRectangle(builder, Margin, bottom, ContentWidth, rowHeight);
+        DrawCell(builder, Margin, bottom, cellWidth, rowHeight, "Numero d'ordre", declaration.OrderNumber, 1);
+        DrawCell(builder, Margin + cellWidth, bottom, cellWidth, rowHeight, "Ville", declaration.City, 1);
+        DrawCell(builder, Margin + cellWidth * 2, bottom, cellWidth, rowHeight, "Date / Heure", declaration.DeclarationDateTime.ToString("dd/MM/yyyy HH:mm"), 1);
+
+        return bottom;
+    }
+
+    private static double DrawSection(StringBuilder builder, double top, string title, int columns, double rowHeight, IReadOnlyList<FieldValue> fields, int maxValueLines = 1)
+    {
+        var rows = (int)Math.Ceiling(fields.Count / (double)columns);
+        var height = SectionHeaderHeight + rows * rowHeight;
+        var bottom = top - height;
+        var headerBottom = top - SectionHeaderHeight;
+
+        DrawRectangle(builder, Margin, bottom, ContentWidth, height);
+        DrawFilledRectangle(builder, Margin, headerBottom, ContentWidth, SectionHeaderHeight, "0.10 0.25 0.55");
+        DrawText(builder, "F2", 8.5, Margin + 8, headerBottom + 6, title.ToUpperInvariant(), "1 1 1");
+
+        var cellWidth = ContentWidth / columns;
+
+        for (var index = 0; index < fields.Count; index++)
+        {
+            var row = index / columns;
+            var column = index % columns;
+            var x = Margin + column * cellWidth;
+            var cellTop = headerBottom - row * rowHeight;
+            var cellBottom = cellTop - rowHeight;
+            DrawCell(builder, x, cellBottom, cellWidth, rowHeight, fields[index].Label, fields[index].Value, maxValueLines);
+        }
+
+        return bottom;
+    }
+
+    private static void DrawCell(StringBuilder builder, double x, double y, double width, double height, string label, string value, int maxValueLines)
+    {
+        DrawRectangle(builder, x, y, width, height);
+        DrawText(builder, "F2", 6.8, x + 5, y + height - 10, label);
+
+        var lines = WrapValue(value, width - 10, 7.4, maxValueLines).ToArray();
+
+        for (var index = 0; index < lines.Length; index++)
+        {
+            DrawText(builder, "F1", 7.4, x + 5, y + height - 22 - index * 9, lines[index]);
+        }
+    }
+
+    private static void DrawSignatures(StringBuilder builder, double top, VehicleSaleDeclaration declaration)
+    {
+        var height = 76;
+        var bottom = top - height;
+        var cellWidth = ContentWidth / 3;
+
+        DrawRectangle(builder, Margin, bottom, ContentWidth, height);
+        DrawFilledRectangle(builder, Margin, top - SectionHeaderHeight, ContentWidth, SectionHeaderHeight, "0.10 0.25 0.55");
+        DrawText(builder, "F2", 8.5, Margin + 8, top - SectionHeaderHeight + 6, "SIGNATURES", "1 1 1");
+        DrawSignatureCell(builder, Margin, bottom, cellWidth, height - SectionHeaderHeight, "Signature du vendeur", declaration.SellerSignature);
+        DrawSignatureCell(builder, Margin + cellWidth, bottom, cellWidth, height - SectionHeaderHeight, "Signature du gerant", declaration.ManagerSignature);
+        DrawSignatureCell(builder, Margin + cellWidth * 2, bottom, cellWidth, height - SectionHeaderHeight, "Signature de l'acheteur", declaration.BuyerSignature);
+        DrawText(builder, "F1", 6.5, Margin, bottom - 12, $"Document genere le {DateTime.Now:dd/MM/yyyy HH:mm}");
+    }
+
+    private static void DrawSignatureCell(StringBuilder builder, double x, double y, double width, double height, string label, string value)
+    {
+        DrawRectangle(builder, x, y, width, height);
+        DrawText(builder, "F2", 7, x + 5, y + height - 12, label);
+        DrawText(builder, "F1", 7.5, x + 5, y + 12, Shorten(value, 35));
+        DrawLine(builder, x + 8, y + 22, x + width - 8, y + 22);
+    }
+
+    private static void DrawCenteredText(StringBuilder builder, string font, double size, double y, string text)
+    {
+        var normalized = NormalizePdfText(text);
+        var estimatedWidth = normalized.Length * size * 0.48;
+        DrawText(builder, font, size, (PageWidth - estimatedWidth) / 2, y, normalized);
+    }
+
+    private static void DrawText(StringBuilder builder, string font, double size, double x, double y, string text, string color = "0 0 0")
+    {
+        builder.Append(CultureInvariant($"{color} rg BT /{font} {size:0.##} Tf {x:0.##} {y:0.##} Td ({Escape(text)}) Tj ET\n"));
+    }
+
+    private static void DrawRectangle(StringBuilder builder, double x, double y, double width, double height)
+    {
+        builder.Append(CultureInvariant($"0.40 0.46 0.55 RG 0.45 w {x:0.##} {y:0.##} {width:0.##} {height:0.##} re S\n"));
+    }
+
+    private static void DrawFilledRectangle(StringBuilder builder, double x, double y, double width, double height, string color)
+    {
+        builder.Append(CultureInvariant($"q {color} rg {x:0.##} {y:0.##} {width:0.##} {height:0.##} re f Q\n"));
+    }
+
+    private static void DrawLine(StringBuilder builder, double x1, double y1, double x2, double y2)
+    {
+        builder.Append(CultureInvariant($"0.40 0.46 0.55 RG 0.45 w {x1:0.##} {y1:0.##} m {x2:0.##} {y2:0.##} l S\n"));
+    }
+
+    private static byte[] BuildPdf(string content)
+    {
         var offsets = new List<long> { 0 };
         using var stream = new MemoryStream();
 
         WriteAscii(stream, "%PDF-1.4\n");
         WriteObject(stream, offsets, 1, "<< /Type /Catalog /Pages 2 0 R >>");
-
-        var kids = string.Join(" ", Enumerable.Range(0, pages.Count).Select(index => $"{3 + index * 2} 0 R"));
-        WriteObject(stream, offsets, 2, $"<< /Type /Pages /Kids [{kids}] /Count {pages.Count} >>");
-
-        for (var index = 0; index < pages.Count; index++)
-        {
-            var pageObject = 3 + index * 2;
-            var contentObject = pageObject + 1;
-            var page = $"""
-                << /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 {fontObject} 0 R /F2 {boldFontObject} 0 R >> >> /Contents {contentObject} 0 R >>
-                """;
-            WriteObject(stream, offsets, pageObject, page.Trim());
-
-            var content = BuildPageContent(pages[index], index + 1, pages.Count);
-            WriteStreamObject(stream, offsets, contentObject, content);
-        }
-
-        WriteObject(stream, offsets, fontObject, "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>");
-        WriteObject(stream, offsets, boldFontObject, "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>");
+        WriteObject(stream, offsets, 2, "<< /Type /Pages /Kids [3 0 R] /Count 1 >>");
+        WriteObject(stream, offsets, 3, "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 5 0 R /F2 6 0 R >> >> /Contents 4 0 R >>");
+        WriteStreamObject(stream, offsets, 4, content);
+        WriteObject(stream, offsets, 5, "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>");
+        WriteObject(stream, offsets, 6, "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>");
 
         var xrefOffset = stream.Position;
-        WriteAscii(stream, $"xref\n0 {objectCount + 1}\n");
+        WriteAscii(stream, "xref\n0 7\n");
         WriteAscii(stream, "0000000000 65535 f \n");
 
         foreach (var offset in offsets.Skip(1))
@@ -121,32 +201,8 @@ public sealed class PdfReportService : IPdfReportService
             WriteAscii(stream, $"{offset:0000000000} 00000 n \n");
         }
 
-        WriteAscii(stream, $"trailer\n<< /Size {objectCount + 1} /Root 1 0 R >>\nstartxref\n{xrefOffset}\n%%EOF");
+        WriteAscii(stream, $"trailer\n<< /Size 7 /Root 1 0 R >>\nstartxref\n{xrefOffset}\n%%EOF");
         return stream.ToArray();
-    }
-
-    private static string BuildPageContent(IReadOnlyList<ReportLine> lines, int pageNumber, int totalPages)
-    {
-        var builder = new StringBuilder();
-        var y = 750;
-
-        foreach (var line in lines)
-        {
-            if (line.Kind == ReportLineKind.Space)
-            {
-                y -= 12;
-                continue;
-            }
-
-            var font = line.Kind == ReportLineKind.Text ? "F1" : "F2";
-            var size = line.Kind == ReportLineKind.Title ? 18 : line.Kind == ReportLineKind.Section ? 13 : 10;
-            var x = line.Kind == ReportLineKind.Title ? 50 : line.Kind == ReportLineKind.Section ? 50 : 62;
-            builder.Append(CultureInvariant($"BT /{font} {size} Tf {x} {y} Td ({Escape(line.Value)}) Tj ET\n"));
-            y -= line.Kind == ReportLineKind.Title ? 28 : 17;
-        }
-
-        builder.Append(CultureInvariant($"BT /F1 9 Tf 50 32 Td (Page {pageNumber} / {totalPages}) Tj ET\n"));
-        return builder.ToString();
     }
 
     private static void WriteObject(Stream stream, List<long> offsets, int number, string content)
@@ -170,6 +226,83 @@ public sealed class PdfReportService : IPdfReportService
         stream.Write(bytes, 0, bytes.Length);
     }
 
+    private static IEnumerable<string> WrapValue(string? value, double width, double size, int maxLines)
+    {
+        var normalized = NormalizePdfText(string.IsNullOrWhiteSpace(value) ? "-" : value);
+        var maxCharacters = Math.Max(10, (int)(width / (size * 0.52)));
+        var words = normalized.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        var lines = new List<string>();
+        var current = new StringBuilder();
+
+        foreach (var word in words)
+        {
+            if (current.Length > 0 && current.Length + word.Length + 1 > maxCharacters)
+            {
+                lines.Add(current.ToString());
+                current.Clear();
+
+                if (lines.Count == maxLines)
+                {
+                    break;
+                }
+            }
+
+            if (current.Length > 0)
+            {
+                current.Append(' ');
+            }
+
+            current.Append(word);
+        }
+
+        if (current.Length > 0 && lines.Count < maxLines)
+        {
+            lines.Add(current.ToString());
+        }
+
+        if (lines.Count == 0)
+        {
+            lines.Add("-");
+        }
+
+        if (lines.Count == maxLines && string.Join(' ', lines).Length < normalized.Length)
+        {
+            lines[^1] = Shorten(lines[^1], Math.Max(4, maxCharacters - 1));
+        }
+
+        return lines;
+    }
+
+    private static string Shorten(string value, int maxLength)
+    {
+        var normalized = NormalizePdfText(value);
+
+        if (normalized.Length <= maxLength)
+        {
+            return normalized;
+        }
+
+        return $"{normalized[..Math.Max(0, maxLength - 3)]}...";
+    }
+
+    private static string SummarizeAttachments(IReadOnlyList<DeclarationAttachment> attachments)
+    {
+        if (attachments.Count == 0)
+        {
+            return "Aucune";
+        }
+
+        var visible = attachments.Take(4).Select(attachment => $"{attachment.OriginalFileName} ({FormatFileSize(attachment.SizeBytes)})");
+        var summary = string.Join("; ", visible);
+
+        if (attachments.Count > 4)
+        {
+            summary = $"{summary}; +{attachments.Count - 4} autre(s)";
+        }
+
+        return summary;
+    }
+
     private static string Escape(string value)
     {
         return NormalizePdfText(value).Replace("\\", "\\\\").Replace("(", "\\(").Replace(")", "\\)");
@@ -187,45 +320,14 @@ public sealed class PdfReportService : IPdfReportService
                 'œ' => "oe",
                 'Œ' => "OE",
                 '€' => "EUR",
+                '–' => "-",
+                '—' => "-",
                 _ when character <= 255 => character.ToString(),
                 _ => "?"
             });
         }
 
         return builder.ToString();
-    }
-
-    private static IEnumerable<string> Wrap(string value, int length)
-    {
-        if (value.Length <= length)
-        {
-            yield return value;
-            yield break;
-        }
-
-        var words = value.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-        var line = new StringBuilder();
-
-        foreach (var word in words)
-        {
-            if (line.Length + word.Length + 1 > length)
-            {
-                yield return line.ToString();
-                line.Clear();
-            }
-
-            if (line.Length > 0)
-            {
-                line.Append(' ');
-            }
-
-            line.Append(word);
-        }
-
-        if (line.Length > 0)
-        {
-            yield return line.ToString();
-        }
     }
 
     private static string FormatFileSize(long bytes)
@@ -248,22 +350,5 @@ public sealed class PdfReportService : IPdfReportService
         return FormattableString.Invariant(value);
     }
 
-    private sealed record ReportLine(ReportLineKind Kind, string Value)
-    {
-        public static ReportLine Title(string value) => new(ReportLineKind.Title, value);
-
-        public static ReportLine Section(string value) => new(ReportLineKind.Section, value);
-
-        public static ReportLine Text(string value) => new(ReportLineKind.Text, value);
-
-        public static ReportLine Space() => new(ReportLineKind.Space, string.Empty);
-    }
-
-    private enum ReportLineKind
-    {
-        Title,
-        Section,
-        Text,
-        Space
-    }
+    private sealed record FieldValue(string Label, string Value);
 }
