@@ -130,8 +130,12 @@ public sealed class DatabaseInitializer(ISqlConnectionFactory connectionFactory)
             IF NOT EXISTS
             (
                 SELECT 1
-                FROM sys.foreign_keys
-                WHERE name = 'FK_OrderAttachments_Orders'
+                FROM sys.foreign_keys fk
+                INNER JOIN sys.foreign_key_columns fkc ON fkc.constraint_object_id = fk.object_id
+                WHERE fk.parent_object_id = OBJECT_ID('dbo.OrderAttachments')
+                    AND fk.referenced_object_id = OBJECT_ID('dbo.Orders')
+                    AND COL_NAME(fkc.parent_object_id, fkc.parent_column_id) = 'OrderId'
+                    AND COL_NAME(fkc.referenced_object_id, fkc.referenced_column_id) = 'Id'
             )
             BEGIN
                 ALTER TABLE dbo.OrderAttachments

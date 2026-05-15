@@ -108,11 +108,26 @@ BEGIN
         ContentType NVARCHAR(120) NOT NULL,
         SizeBytes BIGINT NOT NULL,
         RelativePath NVARCHAR(500) NOT NULL,
-        UploadedAt DATETIME2 NOT NULL CONSTRAINT DF_OrderAttachments_UploadedAt DEFAULT SYSUTCDATETIME(),
-        CONSTRAINT FK_OrderAttachments_Orders FOREIGN KEY (OrderId)
-            REFERENCES dbo.Orders(Id)
-            ON DELETE CASCADE
+        UploadedAt DATETIME2 NOT NULL CONSTRAINT DF_OrderAttachments_UploadedAt DEFAULT SYSUTCDATETIME()
     );
+END
+GO
+
+IF NOT EXISTS
+(
+    SELECT 1
+    FROM sys.foreign_keys fk
+    INNER JOIN sys.foreign_key_columns fkc ON fkc.constraint_object_id = fk.object_id
+    WHERE fk.parent_object_id = OBJECT_ID('dbo.OrderAttachments')
+        AND fk.referenced_object_id = OBJECT_ID('dbo.Orders')
+        AND COL_NAME(fkc.parent_object_id, fkc.parent_column_id) = 'OrderId'
+        AND COL_NAME(fkc.referenced_object_id, fkc.referenced_column_id) = 'Id'
+)
+BEGIN
+    ALTER TABLE dbo.OrderAttachments
+    ADD CONSTRAINT FK_OrderAttachments_Orders
+    FOREIGN KEY (OrderId) REFERENCES dbo.Orders(Id)
+    ON DELETE CASCADE;
 END
 GO
 
