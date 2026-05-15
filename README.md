@@ -1,6 +1,6 @@
-# Vehicle Sale Declarations
+# Vehicle Sale Orders
 
-Fully dockerized monolithic ASP.NET Core MVC application for managing vehicle sale declarations with SQL Server and ADO.NET only.
+Fully dockerized monolithic ASP.NET Core MVC application for managing vehicle sale orders with SQL Server and ADO.NET only.
 
 ## Stack
 
@@ -12,15 +12,17 @@ Fully dockerized monolithic ASP.NET Core MVC application for managing vehicle sa
 
 ## Features
 
-- Create, read, update, and delete vehicle sale declarations
-- Global search across declaration fields and attachment names
+- Create, read, update, and delete vehicle sale orders
+- Global search across order fields and attachment names
 - Pagination, sorting, and page-size selection
-- Multiple file uploads per declaration
-- Downloadable PDF report per declaration
-- Printable official-style declaration view
-- Email and password authentication with protected declaration pages
+- Multiple file uploads per order
+- Downloadable PDF report per order
+- Printable official-style order view
+- Email and password authentication with protected order pages
 - Frontend validation and backend validation with data annotations
 - SQL schema initialization from the database container and application startup
+- Product CRUD with category assignment
+- Category CRUD from the Products page
 
 ## Project layout
 
@@ -47,15 +49,20 @@ The backend follows the requested separation:
 
 ## Data captured
 
-The declaration form includes:
+The order form includes:
 
 - Writer information: nom du rédacteur, numéro autorisation, téléphone, ville, date and time
 - Seller information: nom, adresse, CIN, téléphone
-- Sale declaration: déclaration text and numéro d'ordre
+- Sale order: sale statement and numéro d'ordre
 - Vehicle information: type, marque, numéro châssis
 - Buyer information: nom, adresse, CIN, téléphone
 - Documents and metadata: titre de propriété, multiple attachments, observation
 - Signatures: vendeur, gérant, acheteur
+
+The catalogue area includes:
+
+- Products: name, reference, description, category, unit price, and stock
+- Categories: name and description
 
 ## Run with Docker
 
@@ -113,9 +120,11 @@ Password: YourStrong!Passw0rd
 The database container builds from `db/Dockerfile` and runs `db/init.sql` on first startup. The script creates:
 
 - `VehicleDeclarationsDb`
-- `dbo.AppUsers`
-- `dbo.VehicleSaleDeclarations`
-- `dbo.DeclarationAttachments`
+- `dbo.Users`
+- `dbo.Orders`
+- `dbo.OrderAttachments`
+- `dbo.Products`
+- `dbo.Categories`
 - supporting indexes and foreign key constraints
 
 The application also checks the required schema at startup for resilience and seeds the configured default login when no user exists.
@@ -144,4 +153,4 @@ In Docker, uploads are persisted in the `app-uploads` volume and downloaded thro
 
 ## PDF reports
 
-Each declaration detail page includes a PDF download action. The report is generated as a compact one-page A4 administrative form with declaration fields, attachment names, observations, and signature values.
+Each order detail page includes a PDF download action. The report is generated as a compact one-page A4 administrative form with order fields, attachment names, observations, and signature values.

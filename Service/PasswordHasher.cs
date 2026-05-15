@@ -1,6 +1,6 @@
 using System.Security.Cryptography;
 
-namespace VehicleDeclarations.Service;
+namespace Orders.Service;
 
 public sealed class PasswordHasher : IPasswordHasher
 {

@@ -423,6 +423,36 @@ tbody tr:hover {
     gap: 1rem;
 }
 
+.product-admin-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
+    gap: 1.25rem;
+    margin-bottom: 1.25rem;
+}
+
+.compact-form,
+.category-edit-form,
+.category-item {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.category-list {
+    display: grid;
+    gap: 1rem;
+}
+
+.category-item {
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 1rem;
+}
+
+.category-edit-form {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+    align-items: end;
+}
+
 .auth-shell {
     display: grid;
     min-height: calc(100vh - 180px);
@@ -467,7 +497,9 @@ tbody tr:hover {
 
     .form-grid,
     .signature-grid,
-    .details-grid {
+    .details-grid,
+    .product-admin-grid,
+    .category-edit-form {
         grid-template-columns: 1fr;
     }
 

@@ -1,4 +1,4 @@
-namespace VehicleDeclarations.Entity;
+namespace Orders.Entity;
 
 public sealed class SearchOptions
 {

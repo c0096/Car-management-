@@ -1,19 +1,19 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using VehicleDeclarations.Entity;
-using VehicleDeclarations.Service;
-using VehicleDeclarations.ViewModels;
+using Orders.Entity;
+using Orders.Service;
+using Orders.ViewModels;
 
-namespace VehicleDeclarations.Controllers;
+namespace Orders.Controllers;
 
 [Authorize]
-public sealed class VehicleDeclarationsController(IVehicleDeclarationService service) : Controller
+public sealed class OrdersController(IOrderService service) : Controller
 {
     public async Task<IActionResult> Index([FromQuery] SearchOptions options)
     {
         var results = await service.SearchAsync(options);
 
-        return View(new DeclarationIndexViewModel
+        return View(new OrderIndexViewModel
         {
             Results = results,
             Options = options
@@ -22,42 +22,42 @@ public sealed class VehicleDeclarationsController(IVehicleDeclarationService ser
 
     public IActionResult Create()
     {
-        return View(new VehicleSaleDeclaration
+        return View(new Order
         {
-            DeclarationDateTime = DateTime.Now
+            OrderDateTime = DateTime.Now
         });
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(VehicleSaleDeclaration declaration, List<IFormFile> attachmentFiles)
+    public async Task<IActionResult> Create(Order order, List<IFormFile> attachmentFiles)
     {
         if (!ModelState.IsValid)
         {
-            return View(declaration);
+            return View(order);
         }
 
-        var id = await service.CreateAsync(declaration, attachmentFiles);
+        var id = await service.CreateAsync(order, attachmentFiles);
         return RedirectToAction(nameof(Details), new { id });
     }
 
     public async Task<IActionResult> Edit(int id)
     {
-        var declaration = await service.GetByIdAsync(id);
+        var order = await service.GetByIdAsync(id);
 
-        if (declaration is null)
+        if (order is null)
         {
             return NotFound();
         }
 
-        return View(declaration);
+        return View(order);
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(int id, VehicleSaleDeclaration declaration, List<IFormFile> attachmentFiles, List<int> removedAttachmentIds)
+    public async Task<IActionResult> Edit(int id, Order order, List<IFormFile> attachmentFiles, List<int> removedAttachmentIds)
     {
-        if (id != declaration.Id)
+        if (id != order.Id)
         {
             return BadRequest();
         }
@@ -65,36 +65,36 @@ public sealed class VehicleDeclarationsController(IVehicleDeclarationService ser
         if (!ModelState.IsValid)
         {
             var existing = await service.GetByIdAsync(id);
-            declaration.Attachments = existing?.Attachments ?? [];
-            return View(declaration);
+            order.Attachments = existing?.Attachments ?? [];
+            return View(order);
         }
 
-        await service.UpdateAsync(declaration, attachmentFiles, removedAttachmentIds);
+        await service.UpdateAsync(order, attachmentFiles, removedAttachmentIds);
         return RedirectToAction(nameof(Details), new { id });
     }
 
     public async Task<IActionResult> Details(int id)
     {
-        var declaration = await service.GetByIdAsync(id);
+        var order = await service.GetByIdAsync(id);
 
-        if (declaration is null)
+        if (order is null)
         {
             return NotFound();
         }
 
-        return View(declaration);
+        return View(order);
     }
 
     public async Task<IActionResult> Delete(int id)
     {
-        var declaration = await service.GetByIdAsync(id);
+        var order = await service.GetByIdAsync(id);
 
-        if (declaration is null)
+        if (order is null)
         {
             return NotFound();
         }
 
-        return View(declaration);
+        return View(order);
     }
 
     [HttpPost]

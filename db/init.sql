@@ -7,15 +7,45 @@ GO
 USE VehicleDeclarationsDb;
 GO
 
-IF OBJECT_ID('dbo.AppUsers', 'U') IS NULL
+IF OBJECT_ID('dbo.Users', 'U') IS NULL AND OBJECT_ID('dbo.AppUsers', 'U') IS NOT NULL
 BEGIN
-    CREATE TABLE dbo.AppUsers
+    EXEC sp_rename 'dbo.AppUsers', 'Users';
+END
+GO
+
+IF OBJECT_ID('dbo.Orders', 'U') IS NULL AND OBJECT_ID('dbo.VehicleSaleDeclarations', 'U') IS NOT NULL
+BEGIN
+    EXEC sp_rename 'dbo.VehicleSaleDeclarations', 'Orders';
+END
+GO
+
+IF OBJECT_ID('dbo.OrderAttachments', 'U') IS NULL AND OBJECT_ID('dbo.DeclarationAttachments', 'U') IS NOT NULL
+BEGIN
+    EXEC sp_rename 'dbo.DeclarationAttachments', 'OrderAttachments';
+END
+GO
+
+IF COL_LENGTH('dbo.Orders', 'DeclarationDateTime') IS NOT NULL AND COL_LENGTH('dbo.Orders', 'OrderDateTime') IS NULL
+BEGIN
+    EXEC sp_rename 'dbo.Orders.DeclarationDateTime', 'OrderDateTime', 'COLUMN';
+END
+GO
+
+IF COL_LENGTH('dbo.OrderAttachments', 'DeclarationId') IS NOT NULL AND COL_LENGTH('dbo.OrderAttachments', 'OrderId') IS NULL
+BEGIN
+    EXEC sp_rename 'dbo.OrderAttachments.DeclarationId', 'OrderId', 'COLUMN';
+END
+GO
+
+IF OBJECT_ID('dbo.Users', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.Users
     (
         Id INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
         Email NVARCHAR(256) NOT NULL,
         NormalizedEmail NVARCHAR(256) NOT NULL,
         PasswordHash NVARCHAR(500) NOT NULL,
-        CreatedAt DATETIME2 NOT NULL CONSTRAINT DF_AppUsers_CreatedAt DEFAULT SYSUTCDATETIME()
+        CreatedAt DATETIME2 NOT NULL CONSTRAINT DF_Users_CreatedAt DEFAULT SYSUTCDATETIME()
     );
 END
 GO
@@ -24,25 +54,25 @@ IF NOT EXISTS
 (
     SELECT 1
     FROM sys.indexes
-    WHERE name = 'UX_AppUsers_NormalizedEmail'
-        AND object_id = OBJECT_ID('dbo.AppUsers')
+    WHERE name = 'UX_Users_NormalizedEmail'
+        AND object_id = OBJECT_ID('dbo.Users')
 )
 BEGIN
-    CREATE UNIQUE INDEX UX_AppUsers_NormalizedEmail
-    ON dbo.AppUsers (NormalizedEmail);
+    CREATE UNIQUE INDEX UX_Users_NormalizedEmail
+    ON dbo.Users (NormalizedEmail);
 END
 GO
 
-IF OBJECT_ID('dbo.VehicleSaleDeclarations', 'U') IS NULL
+IF OBJECT_ID('dbo.Orders', 'U') IS NULL
 BEGIN
-    CREATE TABLE dbo.VehicleSaleDeclarations
+    CREATE TABLE dbo.Orders
     (
         Id INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
         WriterName NVARCHAR(150) NOT NULL,
         AuthorizationNumber NVARCHAR(80) NOT NULL,
         WriterPhone NVARCHAR(40) NOT NULL,
         City NVARCHAR(120) NOT NULL,
-        DeclarationDateTime DATETIME2 NOT NULL,
+        OrderDateTime DATETIME2 NOT NULL,
         SellerName NVARCHAR(150) NOT NULL,
         SellerAddress NVARCHAR(250) NOT NULL,
         SellerCin NVARCHAR(80) NOT NULL,
@@ -61,26 +91,26 @@ BEGIN
         SellerSignature NVARCHAR(150) NOT NULL,
         ManagerSignature NVARCHAR(150) NOT NULL,
         BuyerSignature NVARCHAR(150) NOT NULL,
-        CreatedAt DATETIME2 NOT NULL CONSTRAINT DF_VehicleSaleDeclarations_CreatedAt DEFAULT SYSUTCDATETIME(),
-        UpdatedAt DATETIME2 NOT NULL CONSTRAINT DF_VehicleSaleDeclarations_UpdatedAt DEFAULT SYSUTCDATETIME()
+        CreatedAt DATETIME2 NOT NULL CONSTRAINT DF_Orders_CreatedAt DEFAULT SYSUTCDATETIME(),
+        UpdatedAt DATETIME2 NOT NULL CONSTRAINT DF_Orders_UpdatedAt DEFAULT SYSUTCDATETIME()
     );
 END
 GO
 
-IF OBJECT_ID('dbo.DeclarationAttachments', 'U') IS NULL
+IF OBJECT_ID('dbo.OrderAttachments', 'U') IS NULL
 BEGIN
-    CREATE TABLE dbo.DeclarationAttachments
+    CREATE TABLE dbo.OrderAttachments
     (
         Id INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
-        DeclarationId INT NOT NULL,
+        OrderId INT NOT NULL,
         OriginalFileName NVARCHAR(260) NOT NULL,
         StoredFileName NVARCHAR(260) NOT NULL,
         ContentType NVARCHAR(120) NOT NULL,
         SizeBytes BIGINT NOT NULL,
         RelativePath NVARCHAR(500) NOT NULL,
-        UploadedAt DATETIME2 NOT NULL CONSTRAINT DF_DeclarationAttachments_UploadedAt DEFAULT SYSUTCDATETIME(),
-        CONSTRAINT FK_DeclarationAttachments_VehicleSaleDeclarations FOREIGN KEY (DeclarationId)
-            REFERENCES dbo.VehicleSaleDeclarations(Id)
+        UploadedAt DATETIME2 NOT NULL CONSTRAINT DF_OrderAttachments_UploadedAt DEFAULT SYSUTCDATETIME(),
+        CONSTRAINT FK_OrderAttachments_Orders FOREIGN KEY (OrderId)
+            REFERENCES dbo.Orders(Id)
             ON DELETE CASCADE
     );
 END
@@ -90,12 +120,12 @@ IF NOT EXISTS
 (
     SELECT 1
     FROM sys.indexes
-    WHERE name = 'IX_VehicleSaleDeclarations_DeclarationDateTime'
-        AND object_id = OBJECT_ID('dbo.VehicleSaleDeclarations')
+    WHERE name = 'IX_Orders_OrderDateTime'
+        AND object_id = OBJECT_ID('dbo.Orders')
 )
 BEGIN
-    CREATE INDEX IX_VehicleSaleDeclarations_DeclarationDateTime
-    ON dbo.VehicleSaleDeclarations (DeclarationDateTime DESC);
+    CREATE INDEX IX_Orders_OrderDateTime
+    ON dbo.Orders (OrderDateTime DESC);
 END
 GO
 
@@ -103,11 +133,80 @@ IF NOT EXISTS
 (
     SELECT 1
     FROM sys.indexes
-    WHERE name = 'IX_VehicleSaleDeclarations_OrderNumber'
-        AND object_id = OBJECT_ID('dbo.VehicleSaleDeclarations')
+    WHERE name = 'IX_Orders_OrderNumber'
+        AND object_id = OBJECT_ID('dbo.Orders')
 )
 BEGIN
-    CREATE INDEX IX_VehicleSaleDeclarations_OrderNumber
-    ON dbo.VehicleSaleDeclarations (OrderNumber);
+    CREATE INDEX IX_Orders_OrderNumber
+    ON dbo.Orders (OrderNumber);
+END
+GO
+
+IF OBJECT_ID('dbo.Categories', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.Categories
+    (
+        Id INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+        Name NVARCHAR(120) NOT NULL,
+        Description NVARCHAR(500) NULL,
+        CreatedAt DATETIME2 NOT NULL CONSTRAINT DF_Categories_CreatedAt DEFAULT SYSUTCDATETIME(),
+        UpdatedAt DATETIME2 NOT NULL CONSTRAINT DF_Categories_UpdatedAt DEFAULT SYSUTCDATETIME()
+    );
+END
+GO
+
+IF OBJECT_ID('dbo.Products', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.Products
+    (
+        Id INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+        Name NVARCHAR(160) NOT NULL,
+        Sku NVARCHAR(80) NOT NULL,
+        Description NVARCHAR(700) NULL,
+        CategoryId INT NOT NULL,
+        UnitPrice DECIMAL(18,2) NOT NULL CONSTRAINT DF_Products_UnitPrice DEFAULT 0,
+        StockQuantity INT NOT NULL CONSTRAINT DF_Products_StockQuantity DEFAULT 0,
+        CreatedAt DATETIME2 NOT NULL CONSTRAINT DF_Products_CreatedAt DEFAULT SYSUTCDATETIME(),
+        UpdatedAt DATETIME2 NOT NULL CONSTRAINT DF_Products_UpdatedAt DEFAULT SYSUTCDATETIME()
+    );
+END
+GO
+
+IF NOT EXISTS
+(
+    SELECT 1
+    FROM sys.foreign_keys
+    WHERE name = 'FK_Products_Categories'
+)
+BEGIN
+    ALTER TABLE dbo.Products
+    ADD CONSTRAINT FK_Products_Categories
+    FOREIGN KEY (CategoryId) REFERENCES dbo.Categories(Id);
+END
+GO
+
+IF NOT EXISTS
+(
+    SELECT 1
+    FROM sys.indexes
+    WHERE name = 'UX_Products_Sku'
+        AND object_id = OBJECT_ID('dbo.Products')
+)
+BEGIN
+    CREATE UNIQUE INDEX UX_Products_Sku
+    ON dbo.Products (Sku);
+END
+GO
+
+IF NOT EXISTS
+(
+    SELECT 1
+    FROM sys.indexes
+    WHERE name = 'UX_Categories_Name'
+        AND object_id = OBJECT_ID('dbo.Categories')
+)
+BEGIN
+    CREATE UNIQUE INDEX UX_Categories_Name
+    ON dbo.Categories (Name);
 END
 GO

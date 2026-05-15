@@ -1,8 +1,8 @@
-using VehicleDeclarations.Entity;
+using Orders.Entity;
 
-namespace VehicleDeclarations.Service;
+namespace Orders.Service;
 
 public interface IPdfReportService
 {
-    byte[] Generate(VehicleSaleDeclaration declaration);
+    byte[] Generate(Order order);
 }

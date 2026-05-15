@@ -3,10 +3,10 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using VehicleDeclarations.Service;
-using VehicleDeclarations.ViewModels;
+using Orders.Service;
+using Orders.ViewModels;
 
-namespace VehicleDeclarations.Controllers;
+namespace Orders.Controllers;
 
 public sealed class AccountController(IAuthService authService) : Controller
 {
@@ -15,7 +15,7 @@ public sealed class AccountController(IAuthService authService) : Controller
     {
         if (User.Identity?.IsAuthenticated == true)
         {
-            return RedirectToAction("Index", "VehicleDeclarations");
+            return RedirectToAction("Index", "Orders");
         }
 
         return View(new LoginViewModel
@@ -58,7 +58,7 @@ public sealed class AccountController(IAuthService authService) : Controller
             return LocalRedirect(model.ReturnUrl);
         }
 
-        return RedirectToAction("Index", "VehicleDeclarations");
+        return RedirectToAction("Index", "Orders");
     }
 
     [Authorize]

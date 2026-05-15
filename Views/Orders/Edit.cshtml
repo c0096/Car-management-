@@ -1,20 +1,20 @@
-@model VehicleSaleDeclaration
+@model Order
 
 @{
-    ViewData["Title"] = "Modifier la déclaration";
+    ViewData["Title"] = "Modifier la commande";
 }
 
 <div class="page-heading">
     <div>
         <p class="eyebrow">Modification</p>
-        <h1>Déclaration @Model.OrderNumber</h1>
+        <h1>Commande @Model.OrderNumber</h1>
     </div>
     <a class="button" asp-action="Details" asp-route-id="@Model.Id">Voir</a>
 </div>
 
 <form asp-action="Edit" asp-route-id="@Model.Id" method="post" enctype="multipart/form-data" class="card form-card" data-validate="true">
     <input asp-for="Id" type="hidden" />
-    <partial name="_DeclarationForm" model="Model" />
+    <partial name="_OrderForm" model="Model" />
     <div class="form-actions">
         <button class="button button-primary" type="submit">Mettre à jour</button>
         <a class="button" asp-action="Details" asp-route-id="@Model.Id">Annuler</a>

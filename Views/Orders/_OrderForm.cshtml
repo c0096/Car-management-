@@ -1,4 +1,4 @@
-@model VehicleSaleDeclaration
+@model Order
 
 <div asp-validation-summary="ModelOnly" class="validation-summary"></div>
 
@@ -26,9 +26,9 @@
             <span asp-validation-for="City" class="field-validation"></span>
         </label>
         <label>
-            <span>@Html.DisplayNameFor(model => model.DeclarationDateTime)</span>
-            <input asp-for="DeclarationDateTime" type="datetime-local" value="@Model.DeclarationDateTime.ToString("yyyy-MM-ddTHH:mm")" />
-            <span asp-validation-for="DeclarationDateTime" class="field-validation"></span>
+            <span>@Html.DisplayNameFor(model => model.OrderDateTime)</span>
+            <input asp-for="OrderDateTime" type="datetime-local" value="@Model.OrderDateTime.ToString("yyyy-MM-ddTHH:mm")" />
+            <span asp-validation-for="OrderDateTime" class="field-validation"></span>
         </label>
     </div>
 </section>
@@ -60,7 +60,7 @@
 </section>
 
 <section class="form-section">
-    <h2>Déclaration de vente</h2>
+    <h2>Commande de vente</h2>
     <div class="form-grid">
         <label>
             <span>@Html.DisplayNameFor(model => model.SoldItemDescription)</span>

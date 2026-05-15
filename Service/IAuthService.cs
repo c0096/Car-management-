@@ -1,10 +1,10 @@
-using VehicleDeclarations.Entity;
+using Orders.Entity;
 
-namespace VehicleDeclarations.Service;
+namespace Orders.Service;
 
 public interface IAuthService
 {
     Task EnsureDefaultUserAsync();
 
-    Task<AppUser?> ValidateCredentialsAsync(string email, string password);
+    Task<User?> ValidateCredentialsAsync(string email, string password);
 }

@@ -1,15 +1,15 @@
 using System.Data;
 using Microsoft.Data.SqlClient;
-using VehicleDeclarations.Db;
-using VehicleDeclarations.Entity;
+using Orders.Db;
+using Orders.Entity;
 
-namespace VehicleDeclarations.Repository;
+namespace Orders.Repository;
 
-public sealed class VehicleDeclarationRepository(ISqlConnectionFactory connectionFactory) : IVehicleDeclarationRepository
+public sealed class OrderRepository(ISqlConnectionFactory connectionFactory) : IOrderRepository
 {
     private static readonly IReadOnlyDictionary<string, string> SortColumns = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
     {
-        ["date"] = "DeclarationDateTime",
+        ["date"] = "OrderDateTime",
         ["writer"] = "WriterName",
         ["seller"] = "SellerName",
         ["buyer"] = "BuyerName",
@@ -19,7 +19,7 @@ public sealed class VehicleDeclarationRepository(ISqlConnectionFactory connectio
         ["created"] = "CreatedAt"
     };
 
-    public async Task<PagedResult<VehicleSaleDeclaration>> SearchAsync(SearchOptions options)
+    public async Task<PagedResult<Order>> SearchAsync(SearchOptions options)
     {
         NormalizeOptions(options);
 
@@ -30,7 +30,7 @@ public sealed class VehicleDeclarationRepository(ISqlConnectionFactory connectio
         var sortColumn = SortColumns.TryGetValue(options.Sort, out var mappedSort) ? mappedSort : SortColumns["date"];
         var direction = string.Equals(options.Direction, "asc", StringComparison.OrdinalIgnoreCase) ? "ASC" : "DESC";
 
-        var countSql = $"SELECT COUNT(1) FROM dbo.VehicleSaleDeclarations d {whereClause}";
+        var countSql = $"SELECT COUNT(1) FROM dbo.Orders d {whereClause}";
         await using var countCommand = new SqlCommand(countSql, connection);
         AddSearchParameter(countCommand, options.Search);
         var totalItems = Convert.ToInt32(await countCommand.ExecuteScalarAsync());
@@ -42,7 +42,7 @@ public sealed class VehicleDeclarationRepository(ISqlConnectionFactory connectio
                 d.AuthorizationNumber,
                 d.WriterPhone,
                 d.City,
-                d.DeclarationDateTime,
+                d.OrderDateTime,
                 d.SellerName,
                 d.SellerAddress,
                 d.SellerCin,
@@ -63,7 +63,7 @@ public sealed class VehicleDeclarationRepository(ISqlConnectionFactory connectio
                 d.BuyerSignature,
                 d.CreatedAt,
                 d.UpdatedAt
-            FROM dbo.VehicleSaleDeclarations d
+            FROM dbo.Orders d
             {whereClause}
             ORDER BY d.{sortColumn} {direction}, d.Id DESC
             OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
@@ -74,24 +74,24 @@ public sealed class VehicleDeclarationRepository(ISqlConnectionFactory connectio
         command.Parameters.Add("@Offset", SqlDbType.Int).Value = options.Offset;
         command.Parameters.Add("@PageSize", SqlDbType.Int).Value = options.PageSize;
 
-        var declarations = new List<VehicleSaleDeclaration>();
+        var orders = new List<Order>();
         await using var reader = await command.ExecuteReaderAsync();
 
         while (await reader.ReadAsync())
         {
-            declarations.Add(MapDeclaration(reader));
+            orders.Add(MapOrder(reader));
         }
 
-        return new PagedResult<VehicleSaleDeclaration>
+        return new PagedResult<Order>
         {
-            Items = declarations,
+            Items = orders,
             TotalItems = totalItems,
             Page = options.Page,
             PageSize = options.PageSize
         };
     }
 
-    public async Task<VehicleSaleDeclaration?> GetByIdAsync(int id)
+    public async Task<Order?> GetByIdAsync(int id)
     {
         await using var connection = connectionFactory.CreateConnection();
         await connection.OpenAsync();
@@ -103,7 +103,7 @@ public sealed class VehicleDeclarationRepository(ISqlConnectionFactory connectio
                 AuthorizationNumber,
                 WriterPhone,
                 City,
-                DeclarationDateTime,
+                OrderDateTime,
                 SellerName,
                 SellerAddress,
                 SellerCin,
@@ -124,44 +124,44 @@ public sealed class VehicleDeclarationRepository(ISqlConnectionFactory connectio
                 BuyerSignature,
                 CreatedAt,
                 UpdatedAt
-            FROM dbo.VehicleSaleDeclarations
+            FROM dbo.Orders
             WHERE Id = @Id;
             """;
 
         await using var command = new SqlCommand(sql, connection);
         command.Parameters.Add("@Id", SqlDbType.Int).Value = id;
 
-        VehicleSaleDeclaration? declaration = null;
+        Order? order = null;
         await using (var reader = await command.ExecuteReaderAsync())
         {
             if (await reader.ReadAsync())
             {
-                declaration = MapDeclaration(reader);
+                order = MapOrder(reader);
             }
         }
 
-        if (declaration is null)
+        if (order is null)
         {
             return null;
         }
 
-        declaration.Attachments = await GetAttachmentsForDeclarationAsync(connection, id);
-        return declaration;
+        order.Attachments = await GetAttachmentsForOrderAsync(connection, id);
+        return order;
     }
 
-    public async Task<int> CreateAsync(VehicleSaleDeclaration declaration)
+    public async Task<int> CreateAsync(Order order)
     {
         await using var connection = connectionFactory.CreateConnection();
         await connection.OpenAsync();
 
         var sql = """
-            INSERT INTO dbo.VehicleSaleDeclarations
+            INSERT INTO dbo.Orders
             (
                 WriterName,
                 AuthorizationNumber,
                 WriterPhone,
                 City,
-                DeclarationDateTime,
+                OrderDateTime,
                 SellerName,
                 SellerAddress,
                 SellerCin,
@@ -188,7 +188,7 @@ public sealed class VehicleDeclarationRepository(ISqlConnectionFactory connectio
                 @AuthorizationNumber,
                 @WriterPhone,
                 @City,
-                @DeclarationDateTime,
+                @OrderDateTime,
                 @SellerName,
                 @SellerAddress,
                 @SellerCin,
@@ -211,23 +211,23 @@ public sealed class VehicleDeclarationRepository(ISqlConnectionFactory connectio
             """;
 
         await using var command = new SqlCommand(sql, connection);
-        AddDeclarationParameters(command, declaration);
+        AddOrderParameters(command, order);
         return Convert.ToInt32(await command.ExecuteScalarAsync());
     }
 
-    public async Task UpdateAsync(VehicleSaleDeclaration declaration)
+    public async Task UpdateAsync(Order order)
     {
         await using var connection = connectionFactory.CreateConnection();
         await connection.OpenAsync();
 
         var sql = """
-            UPDATE dbo.VehicleSaleDeclarations
+            UPDATE dbo.Orders
             SET
                 WriterName = @WriterName,
                 AuthorizationNumber = @AuthorizationNumber,
                 WriterPhone = @WriterPhone,
                 City = @City,
-                DeclarationDateTime = @DeclarationDateTime,
+                OrderDateTime = @OrderDateTime,
                 SellerName = @SellerName,
                 SellerAddress = @SellerAddress,
                 SellerCin = @SellerCin,
@@ -251,8 +251,8 @@ public sealed class VehicleDeclarationRepository(ISqlConnectionFactory connectio
             """;
 
         await using var command = new SqlCommand(sql, connection);
-        command.Parameters.Add("@Id", SqlDbType.Int).Value = declaration.Id;
-        AddDeclarationParameters(command, declaration);
+        command.Parameters.Add("@Id", SqlDbType.Int).Value = order.Id;
+        AddOrderParameters(command, order);
         await command.ExecuteNonQueryAsync();
     }
 
@@ -261,12 +261,12 @@ public sealed class VehicleDeclarationRepository(ISqlConnectionFactory connectio
         await using var connection = connectionFactory.CreateConnection();
         await connection.OpenAsync();
 
-        await using var command = new SqlCommand("DELETE FROM dbo.VehicleSaleDeclarations WHERE Id = @Id;", connection);
+        await using var command = new SqlCommand("DELETE FROM dbo.Orders WHERE Id = @Id;", connection);
         command.Parameters.Add("@Id", SqlDbType.Int).Value = id;
         await command.ExecuteNonQueryAsync();
     }
 
-    public async Task AddAttachmentsAsync(int declarationId, IReadOnlyList<DeclarationAttachment> attachments)
+    public async Task AddAttachmentsAsync(int orderId, IReadOnlyList<OrderAttachment> attachments)
     {
         if (attachments.Count == 0)
         {
@@ -279,9 +279,9 @@ public sealed class VehicleDeclarationRepository(ISqlConnectionFactory connectio
         foreach (var attachment in attachments)
         {
             var sql = """
-                INSERT INTO dbo.DeclarationAttachments
+                INSERT INTO dbo.OrderAttachments
                 (
-                    DeclarationId,
+                    OrderId,
                     OriginalFileName,
                     StoredFileName,
                     ContentType,
@@ -290,7 +290,7 @@ public sealed class VehicleDeclarationRepository(ISqlConnectionFactory connectio
                 )
                 VALUES
                 (
-                    @DeclarationId,
+                    @OrderId,
                     @OriginalFileName,
                     @StoredFileName,
                     @ContentType,
@@ -300,13 +300,13 @@ public sealed class VehicleDeclarationRepository(ISqlConnectionFactory connectio
                 """;
 
             await using var command = new SqlCommand(sql, connection);
-            command.Parameters.Add("@DeclarationId", SqlDbType.Int).Value = declarationId;
+            command.Parameters.Add("@OrderId", SqlDbType.Int).Value = orderId;
             AddAttachmentParameters(command, attachment);
             await command.ExecuteNonQueryAsync();
         }
     }
 
-    public async Task<IReadOnlyList<DeclarationAttachment>> GetAttachmentsByIdsAsync(IReadOnlyList<int> attachmentIds)
+    public async Task<IReadOnlyList<OrderAttachment>> GetAttachmentsByIdsAsync(IReadOnlyList<int> attachmentIds)
     {
         if (attachmentIds.Count == 0)
         {
@@ -320,14 +320,14 @@ public sealed class VehicleDeclarationRepository(ISqlConnectionFactory connectio
         var sql = $"""
             SELECT
                 Id,
-                DeclarationId,
+                OrderId,
                 OriginalFileName,
                 StoredFileName,
                 ContentType,
                 SizeBytes,
                 RelativePath,
                 UploadedAt
-            FROM dbo.DeclarationAttachments
+            FROM dbo.OrderAttachments
             WHERE Id IN ({string.Join(", ", parameterNames)});
             """;
 
@@ -338,7 +338,7 @@ public sealed class VehicleDeclarationRepository(ISqlConnectionFactory connectio
             command.Parameters.Add(parameterNames[index], SqlDbType.Int).Value = attachmentIds[index];
         }
 
-        var attachments = new List<DeclarationAttachment>();
+        var attachments = new List<OrderAttachment>();
         await using var reader = await command.ExecuteReaderAsync();
 
         while (await reader.ReadAsync())
@@ -360,7 +360,7 @@ public sealed class VehicleDeclarationRepository(ISqlConnectionFactory connectio
         await connection.OpenAsync();
 
         var parameterNames = attachmentIds.Select((_, index) => $"@Id{index}").ToArray();
-        var sql = $"DELETE FROM dbo.DeclarationAttachments WHERE Id IN ({string.Join(", ", parameterNames)});";
+        var sql = $"DELETE FROM dbo.OrderAttachments WHERE Id IN ({string.Join(", ", parameterNames)});";
         await using var command = new SqlCommand(sql, connection);
 
         for (var index = 0; index < attachmentIds.Count; index++)
@@ -371,27 +371,27 @@ public sealed class VehicleDeclarationRepository(ISqlConnectionFactory connectio
         await command.ExecuteNonQueryAsync();
     }
 
-    private static async Task<List<DeclarationAttachment>> GetAttachmentsForDeclarationAsync(SqlConnection connection, int declarationId)
+    private static async Task<List<OrderAttachment>> GetAttachmentsForOrderAsync(SqlConnection connection, int orderId)
     {
         var sql = """
             SELECT
                 Id,
-                DeclarationId,
+                OrderId,
                 OriginalFileName,
                 StoredFileName,
                 ContentType,
                 SizeBytes,
                 RelativePath,
                 UploadedAt
-            FROM dbo.DeclarationAttachments
-            WHERE DeclarationId = @DeclarationId
+            FROM dbo.OrderAttachments
+            WHERE OrderId = @OrderId
             ORDER BY UploadedAt DESC, Id DESC;
             """;
 
         await using var command = new SqlCommand(sql, connection);
-        command.Parameters.Add("@DeclarationId", SqlDbType.Int).Value = declarationId;
+        command.Parameters.Add("@OrderId", SqlDbType.Int).Value = orderId;
 
-        var attachments = new List<DeclarationAttachment>();
+        var attachments = new List<OrderAttachment>();
         await using var reader = await command.ExecuteReaderAsync();
 
         while (await reader.ReadAsync())
@@ -415,7 +415,7 @@ public sealed class VehicleDeclarationRepository(ISqlConnectionFactory connectio
                 OR d.AuthorizationNumber LIKE @Search
                 OR d.WriterPhone LIKE @Search
                 OR d.City LIKE @Search
-                OR CONVERT(NVARCHAR(30), d.DeclarationDateTime, 120) LIKE @Search
+                OR CONVERT(NVARCHAR(30), d.OrderDateTime, 120) LIKE @Search
                 OR d.SellerName LIKE @Search
                 OR d.SellerAddress LIKE @Search
                 OR d.SellerCin LIKE @Search
@@ -437,8 +437,8 @@ public sealed class VehicleDeclarationRepository(ISqlConnectionFactory connectio
                 OR EXISTS
                 (
                     SELECT 1
-                    FROM dbo.DeclarationAttachments a
-                    WHERE a.DeclarationId = d.Id
+                    FROM dbo.OrderAttachments a
+                    WHERE a.OrderId = d.Id
                         AND a.OriginalFileName LIKE @Search
                 )
             """;
@@ -452,34 +452,34 @@ public sealed class VehicleDeclarationRepository(ISqlConnectionFactory connectio
         }
     }
 
-    private static void AddDeclarationParameters(SqlCommand command, VehicleSaleDeclaration declaration)
+    private static void AddOrderParameters(SqlCommand command, Order order)
     {
-        command.Parameters.Add("@WriterName", SqlDbType.NVarChar, 150).Value = declaration.WriterName.Trim();
-        command.Parameters.Add("@AuthorizationNumber", SqlDbType.NVarChar, 80).Value = declaration.AuthorizationNumber.Trim();
-        command.Parameters.Add("@WriterPhone", SqlDbType.NVarChar, 40).Value = declaration.WriterPhone.Trim();
-        command.Parameters.Add("@City", SqlDbType.NVarChar, 120).Value = declaration.City.Trim();
-        command.Parameters.Add("@DeclarationDateTime", SqlDbType.DateTime2).Value = declaration.DeclarationDateTime;
-        command.Parameters.Add("@SellerName", SqlDbType.NVarChar, 150).Value = declaration.SellerName.Trim();
-        command.Parameters.Add("@SellerAddress", SqlDbType.NVarChar, 250).Value = declaration.SellerAddress.Trim();
-        command.Parameters.Add("@SellerCin", SqlDbType.NVarChar, 80).Value = declaration.SellerCin.Trim();
-        command.Parameters.Add("@SellerPhone", SqlDbType.NVarChar, 40).Value = declaration.SellerPhone.Trim();
-        command.Parameters.Add("@SoldItemDescription", SqlDbType.NVarChar, 250).Value = declaration.SoldItemDescription.Trim();
-        command.Parameters.Add("@OrderNumber", SqlDbType.NVarChar, 80).Value = declaration.OrderNumber.Trim();
-        command.Parameters.Add("@VehicleType", SqlDbType.NVarChar, 120).Value = declaration.VehicleType.Trim();
-        command.Parameters.Add("@VehicleBrand", SqlDbType.NVarChar, 120).Value = declaration.VehicleBrand.Trim();
-        command.Parameters.Add("@ChassisNumber", SqlDbType.NVarChar, 120).Value = declaration.ChassisNumber.Trim();
-        command.Parameters.Add("@BuyerName", SqlDbType.NVarChar, 150).Value = declaration.BuyerName.Trim();
-        command.Parameters.Add("@BuyerAddress", SqlDbType.NVarChar, 250).Value = declaration.BuyerAddress.Trim();
-        command.Parameters.Add("@BuyerCin", SqlDbType.NVarChar, 80).Value = declaration.BuyerCin.Trim();
-        command.Parameters.Add("@BuyerPhone", SqlDbType.NVarChar, 40).Value = declaration.BuyerPhone.Trim();
-        command.Parameters.Add("@PropertyTitle", SqlDbType.NVarChar, 180).Value = declaration.PropertyTitle.Trim();
-        command.Parameters.Add("@Observation", SqlDbType.NVarChar, 1000).Value = string.IsNullOrWhiteSpace(declaration.Observation) ? DBNull.Value : declaration.Observation.Trim();
-        command.Parameters.Add("@SellerSignature", SqlDbType.NVarChar, 150).Value = declaration.SellerSignature.Trim();
-        command.Parameters.Add("@ManagerSignature", SqlDbType.NVarChar, 150).Value = declaration.ManagerSignature.Trim();
-        command.Parameters.Add("@BuyerSignature", SqlDbType.NVarChar, 150).Value = declaration.BuyerSignature.Trim();
+        command.Parameters.Add("@WriterName", SqlDbType.NVarChar, 150).Value = order.WriterName.Trim();
+        command.Parameters.Add("@AuthorizationNumber", SqlDbType.NVarChar, 80).Value = order.AuthorizationNumber.Trim();
+        command.Parameters.Add("@WriterPhone", SqlDbType.NVarChar, 40).Value = order.WriterPhone.Trim();
+        command.Parameters.Add("@City", SqlDbType.NVarChar, 120).Value = order.City.Trim();
+        command.Parameters.Add("@OrderDateTime", SqlDbType.DateTime2).Value = order.OrderDateTime;
+        command.Parameters.Add("@SellerName", SqlDbType.NVarChar, 150).Value = order.SellerName.Trim();
+        command.Parameters.Add("@SellerAddress", SqlDbType.NVarChar, 250).Value = order.SellerAddress.Trim();
+        command.Parameters.Add("@SellerCin", SqlDbType.NVarChar, 80).Value = order.SellerCin.Trim();
+        command.Parameters.Add("@SellerPhone", SqlDbType.NVarChar, 40).Value = order.SellerPhone.Trim();
+        command.Parameters.Add("@SoldItemDescription", SqlDbType.NVarChar, 250).Value = order.SoldItemDescription.Trim();
+        command.Parameters.Add("@OrderNumber", SqlDbType.NVarChar, 80).Value = order.OrderNumber.Trim();
+        command.Parameters.Add("@VehicleType", SqlDbType.NVarChar, 120).Value = order.VehicleType.Trim();
+        command.Parameters.Add("@VehicleBrand", SqlDbType.NVarChar, 120).Value = order.VehicleBrand.Trim();
+        command.Parameters.Add("@ChassisNumber", SqlDbType.NVarChar, 120).Value = order.ChassisNumber.Trim();
+        command.Parameters.Add("@BuyerName", SqlDbType.NVarChar, 150).Value = order.BuyerName.Trim();
+        command.Parameters.Add("@BuyerAddress", SqlDbType.NVarChar, 250).Value = order.BuyerAddress.Trim();
+        command.Parameters.Add("@BuyerCin", SqlDbType.NVarChar, 80).Value = order.BuyerCin.Trim();
+        command.Parameters.Add("@BuyerPhone", SqlDbType.NVarChar, 40).Value = order.BuyerPhone.Trim();
+        command.Parameters.Add("@PropertyTitle", SqlDbType.NVarChar, 180).Value = order.PropertyTitle.Trim();
+        command.Parameters.Add("@Observation", SqlDbType.NVarChar, 1000).Value = string.IsNullOrWhiteSpace(order.Observation) ? DBNull.Value : order.Observation.Trim();
+        command.Parameters.Add("@SellerSignature", SqlDbType.NVarChar, 150).Value = order.SellerSignature.Trim();
+        command.Parameters.Add("@ManagerSignature", SqlDbType.NVarChar, 150).Value = order.ManagerSignature.Trim();
+        command.Parameters.Add("@BuyerSignature", SqlDbType.NVarChar, 150).Value = order.BuyerSignature.Trim();
     }
 
-    private static void AddAttachmentParameters(SqlCommand command, DeclarationAttachment attachment)
+    private static void AddAttachmentParameters(SqlCommand command, OrderAttachment attachment)
     {
         command.Parameters.Add("@OriginalFileName", SqlDbType.NVarChar, 260).Value = attachment.OriginalFileName;
         command.Parameters.Add("@StoredFileName", SqlDbType.NVarChar, 260).Value = attachment.StoredFileName;
@@ -488,16 +488,16 @@ public sealed class VehicleDeclarationRepository(ISqlConnectionFactory connectio
         command.Parameters.Add("@RelativePath", SqlDbType.NVarChar, 500).Value = attachment.RelativePath;
     }
 
-    private static VehicleSaleDeclaration MapDeclaration(SqlDataReader reader)
+    private static Order MapOrder(SqlDataReader reader)
     {
-        return new VehicleSaleDeclaration
+        return new Order
         {
             Id = GetInt32(reader, "Id"),
             WriterName = GetString(reader, "WriterName"),
             AuthorizationNumber = GetString(reader, "AuthorizationNumber"),
             WriterPhone = GetString(reader, "WriterPhone"),
             City = GetString(reader, "City"),
-            DeclarationDateTime = GetDateTime(reader, "DeclarationDateTime"),
+            OrderDateTime = GetDateTime(reader, "OrderDateTime"),
             SellerName = GetString(reader, "SellerName"),
             SellerAddress = GetString(reader, "SellerAddress"),
             SellerCin = GetString(reader, "SellerCin"),
@@ -521,12 +521,12 @@ public sealed class VehicleDeclarationRepository(ISqlConnectionFactory connectio
         };
     }
 
-    private static DeclarationAttachment MapAttachment(SqlDataReader reader)
+    private static OrderAttachment MapAttachment(SqlDataReader reader)
     {
-        return new DeclarationAttachment
+        return new OrderAttachment
         {
             Id = GetInt32(reader, "Id"),
-            DeclarationId = GetInt32(reader, "DeclarationId"),
+            OrderId = GetInt32(reader, "OrderId"),
             OriginalFileName = GetString(reader, "OriginalFileName"),
             StoredFileName = GetString(reader, "StoredFileName"),
             ContentType = GetString(reader, "ContentType"),

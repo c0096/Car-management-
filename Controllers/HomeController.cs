@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 
-namespace VehicleDeclarations.Controllers;
+namespace Orders.Controllers;
 
 public sealed class HomeController : Controller
 {

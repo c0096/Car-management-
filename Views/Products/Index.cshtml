@@ -1,0 +1,125 @@
+@model ProductIndexViewModel
+
+@{
+    ViewData["Title"] = "Produits";
+    ViewBag.Categories = Model.Categories;
+}
+
+<div class="page-heading">
+    <div>
+        <p class="eyebrow">Catalogue</p>
+        <h1>Produits et catégories</h1>
+        <p>Gérez les produits et les catégories depuis cette page.</p>
+    </div>
+    <a class="button" asp-controller="Orders" asp-action="Index">Retour aux commandes</a>
+</div>
+
+<div class="product-admin-grid">
+    <section class="card form-card">
+        <h2>Nouveau produit</h2>
+        @if (Model.Categories.Count == 0)
+        {
+            <p class="validation-summary">Créez une catégorie avant d'ajouter un produit.</p>
+        }
+        <form asp-action="Create" method="post" data-validate="true">
+            <partial name="_ProductForm" model="Model.ProductForm" />
+            <div class="form-actions">
+                <button class="button button-primary" type="submit" disabled="@(Model.Categories.Count == 0)">Ajouter le produit</button>
+            </div>
+        </form>
+    </section>
+
+    <section class="card form-card">
+        <h2>Catégories</h2>
+        @if (TempData["CategoryError"] is string categoryError)
+        {
+            <p class="validation-summary">@categoryError</p>
+        }
+        <form asp-controller="Categories" asp-action="Create" method="post" class="compact-form" data-validate="true">
+            <label>
+                <span>@Html.DisplayNameFor(model => model.CategoryForm.Name)</span>
+                <input name="Name" value="@Model.CategoryForm.Name" required />
+            </label>
+            <label>
+                <span>@Html.DisplayNameFor(model => model.CategoryForm.Description)</span>
+                <input name="Description" value="@Model.CategoryForm.Description" />
+            </label>
+            <button class="button button-primary" type="submit">Ajouter</button>
+        </form>
+        <div class="category-list">
+            @if (Model.Categories.Count == 0)
+            {
+                <p class="empty-state">Aucune catégorie.</p>
+            }
+            else
+            {
+                @foreach (var category in Model.Categories)
+                {
+                    <div class="category-item">
+                        <form asp-controller="Categories" asp-action="Edit" asp-route-id="@category.Id" method="post" class="category-edit-form">
+                            <input type="hidden" name="Id" value="@category.Id" />
+                            <label>
+                                <span>Nom</span>
+                                <input name="Name" value="@category.Name" required />
+                            </label>
+                            <label>
+                                <span>Description</span>
+                                <input name="Description" value="@category.Description" />
+                            </label>
+                            <button class="button" type="submit">Modifier</button>
+                        </form>
+                        <form asp-controller="Categories" asp-action="Delete" asp-route-id="@category.Id" method="post">
+                            <button class="button button-danger" type="submit">Supprimer</button>
+                        </form>
+                    </div>
+                }
+            }
+        </div>
+    </section>
+</div>
+
+<section class="card table-card">
+    <div class="table-summary">
+        <strong>@Model.Products.Count produit(s)</strong>
+        <span>Catalogue</span>
+    </div>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Nom</th>
+                    <th>Référence</th>
+                    <th>Catégorie</th>
+                    <th>Prix</th>
+                    <th>Stock</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Products.Count == 0)
+                {
+                    <tr>
+                        <td colspan="6" class="empty-state">Aucun produit trouvé.</td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var product in Model.Products)
+                    {
+                        <tr>
+                            <td>@product.Name</td>
+                            <td>@product.Sku</td>
+                            <td>@product.CategoryName</td>
+                            <td>@product.UnitPrice.ToString("0.00")</td>
+                            <td>@product.StockQuantity</td>
+                            <td class="row-actions">
+                                <a asp-action="Edit" asp-route-id="@product.Id">Modifier</a>
+                                <a class="danger-link" asp-action="Delete" asp-route-id="@product.Id">Supprimer</a>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</section>

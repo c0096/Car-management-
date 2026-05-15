@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
-using VehicleDeclarations.Db;
-using VehicleDeclarations.Repository;
-using VehicleDeclarations.Service;
+using Orders.Db;
+using Orders.Repository;
+using Orders.Service;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,12 +21,16 @@ builder.Services
 builder.Services.AddSingleton<ISqlConnectionFactory, SqlConnectionFactory>();
 builder.Services.AddScoped<IDatabaseInitializer, DatabaseInitializer>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
-builder.Services.AddScoped<IVehicleDeclarationRepository, VehicleDeclarationRepository>();
+builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
+builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IFileStorageService, FileStorageService>();
 builder.Services.AddScoped<IPdfReportService, PdfReportService>();
-builder.Services.AddScoped<IVehicleDeclarationService, VehicleDeclarationService>();
+builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
 
 var app = builder.Build();
 
@@ -52,6 +56,6 @@ app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=VehicleDeclarations}/{action=Index}/{id?}");
+    pattern: "{controller=Orders}/{action=Index}/{id?}");
 
 await app.RunAsync();

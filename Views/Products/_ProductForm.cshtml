@@ -1,0 +1,44 @@
+@model Product
+@{
+    var categories = ViewBag.Categories as IReadOnlyList<Category> ?? [];
+}
+
+<div asp-validation-summary="ModelOnly" class="validation-summary"></div>
+<div class="form-grid">
+    <label>
+        <span>@Html.DisplayNameFor(model => model.Name)</span>
+        <input asp-for="Name" />
+        <span asp-validation-for="Name" class="field-validation"></span>
+    </label>
+    <label>
+        <span>@Html.DisplayNameFor(model => model.Sku)</span>
+        <input asp-for="Sku" />
+        <span asp-validation-for="Sku" class="field-validation"></span>
+    </label>
+    <label>
+        <span>@Html.DisplayNameFor(model => model.CategoryId)</span>
+        <select asp-for="CategoryId">
+            <option value="">Choisir une catégorie</option>
+            @foreach (var category in categories)
+            {
+                <option value="@category.Id" selected="@(category.Id == Model.CategoryId)">@category.Name</option>
+            }
+        </select>
+        <span asp-validation-for="CategoryId" class="field-validation"></span>
+    </label>
+    <label>
+        <span>@Html.DisplayNameFor(model => model.UnitPrice)</span>
+        <input asp-for="UnitPrice" type="number" step="0.01" min="0" />
+        <span asp-validation-for="UnitPrice" class="field-validation"></span>
+    </label>
+    <label>
+        <span>@Html.DisplayNameFor(model => model.StockQuantity)</span>
+        <input asp-for="StockQuantity" type="number" min="0" />
+        <span asp-validation-for="StockQuantity" class="field-validation"></span>
+    </label>
+    <label class="wide-field">
+        <span>@Html.DisplayNameFor(model => model.Description)</span>
+        <textarea asp-for="Description" rows="3"></textarea>
+        <span asp-validation-for="Description" class="field-validation"></span>
+    </label>
+</div>

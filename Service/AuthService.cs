@@ -1,8 +1,8 @@
 using Microsoft.Extensions.Options;
-using VehicleDeclarations.Entity;
-using VehicleDeclarations.Repository;
+using Orders.Entity;
+using Orders.Repository;
 
-namespace VehicleDeclarations.Service;
+namespace Orders.Service;
 
 public sealed class AuthService(IUserRepository userRepository, IPasswordHasher passwordHasher, IOptions<AuthOptions> options) : IAuthService
 {
@@ -21,14 +21,14 @@ public sealed class AuthService(IUserRepository userRepository, IPasswordHasher 
             throw new InvalidOperationException("Default authentication credentials are missing.");
         }
 
-        await userRepository.CreateAsync(new AppUser
+        await userRepository.CreateAsync(new User
         {
             Email = email,
             PasswordHash = passwordHasher.Hash(password)
         });
     }
 
-    public async Task<AppUser?> ValidateCredentialsAsync(string email, string password)
+    public async Task<User?> ValidateCredentialsAsync(string email, string password)
     {
         var user = await userRepository.GetByEmailAsync(email);
 

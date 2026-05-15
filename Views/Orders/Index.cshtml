@@ -1,4 +1,4 @@
-@model DeclarationIndexViewModel
+@model OrderIndexViewModel
 
 @{
     ViewData["Title"] = "Tableau de bord";
@@ -9,10 +9,10 @@
 <div class="dashboard-hero">
     <div>
         <p class="eyebrow">Administration</p>
-        <h1>Déclarations de vente de véhicules</h1>
-        <p>Gérez les dossiers, pièces jointes et rapports PDF depuis une interface centralisée.</p>
+        <h1>Commandes de vente de véhicules</h1>
+        <p>Gérez les commandes, pièces jointes et rapports PDF depuis une interface centralisée.</p>
     </div>
-    <a class="button button-primary" asp-action="Create">Nouvelle déclaration</a>
+    <a class="button button-primary" asp-action="Create">Nouvelle commande</a>
 </div>
 
 <form method="get" class="search-card">
@@ -37,7 +37,7 @@
 
 <section class="card table-card">
     <div class="table-summary">
-        <strong>@Model.Results.TotalItems déclaration(s)</strong>
+        <strong>@Model.Results.TotalItems commande(s)</strong>
         <span>Affichage @start à @end</span>
     </div>
     <div class="table-wrap">
@@ -57,25 +57,25 @@
                 @if (Model.Results.Items.Count == 0)
                 {
                     <tr>
-                        <td colspan="7" class="empty-state">Aucune déclaration trouvée.</td>
+                        <td colspan="7" class="empty-state">Aucune commande trouvée.</td>
                     </tr>
                 }
                 else
                 {
-                    @foreach (var declaration in Model.Results.Items)
+                    @foreach (var order in Model.Results.Items)
                     {
                         <tr>
-                            <td>@declaration.OrderNumber</td>
-                            <td>@declaration.DeclarationDateTime.ToString("dd/MM/yyyy HH:mm")</td>
-                            <td>@declaration.SellerName</td>
-                            <td>@declaration.BuyerName</td>
-                            <td>@declaration.VehicleBrand @declaration.VehicleType</td>
-                            <td>@declaration.City</td>
+                            <td>@order.OrderNumber</td>
+                            <td>@order.OrderDateTime.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td>@order.SellerName</td>
+                            <td>@order.BuyerName</td>
+                            <td>@order.VehicleBrand @order.VehicleType</td>
+                            <td>@order.City</td>
                             <td class="row-actions">
-                                <a asp-action="Details" asp-route-id="@declaration.Id">Voir</a>
-                                <a asp-action="Edit" asp-route-id="@declaration.Id">Modifier</a>
-                                <a asp-action="Report" asp-route-id="@declaration.Id">PDF</a>
-                                <a class="danger-link" asp-action="Delete" asp-route-id="@declaration.Id">Supprimer</a>
+                                <a asp-action="Details" asp-route-id="@order.Id">Voir</a>
+                                <a asp-action="Edit" asp-route-id="@order.Id">Modifier</a>
+                                <a asp-action="Report" asp-route-id="@order.Id">PDF</a>
+                                <a class="danger-link" asp-action="Delete" asp-route-id="@order.Id">Supprimer</a>
                             </td>
                         </tr>
                     }

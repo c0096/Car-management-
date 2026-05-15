@@ -1,8 +1,8 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace VehicleDeclarations.Entity;
+namespace Orders.Entity;
 
-public sealed class VehicleSaleDeclaration
+public sealed class Order
 {
     public int Id { get; set; }
 
@@ -29,7 +29,7 @@ public sealed class VehicleSaleDeclaration
 
     [Required(ErrorMessage = "La date et l'heure sont obligatoires.")]
     [Display(Name = "Date / Heure")]
-    public DateTime DeclarationDateTime { get; set; } = DateTime.Now;
+    public DateTime OrderDateTime { get; set; } = DateTime.Now;
 
     [Required(ErrorMessage = "Le nom du vendeur est obligatoire.")]
     [StringLength(150)]
@@ -126,5 +126,5 @@ public sealed class VehicleSaleDeclaration
 
     public DateTime UpdatedAt { get; set; }
 
-    public List<DeclarationAttachment> Attachments { get; set; } = [];
+    public List<OrderAttachment> Attachments { get; set; } = [];
 }

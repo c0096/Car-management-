@@ -1,12 +1,12 @@
-using VehicleDeclarations.Entity;
+using Orders.Entity;
 
-namespace VehicleDeclarations.Service;
+namespace Orders.Service;
 
 public interface IFileStorageService
 {
-    Task<IReadOnlyList<DeclarationAttachment>> SaveAsync(int declarationId, IReadOnlyList<IFormFile> files);
+    Task<IReadOnlyList<OrderAttachment>> SaveAsync(int orderId, IReadOnlyList<IFormFile> files);
 
-    Task<byte[]?> ReadAsync(DeclarationAttachment attachment);
+    Task<byte[]?> ReadAsync(OrderAttachment attachment);
 
-    Task DeleteAsync(IReadOnlyList<DeclarationAttachment> attachments);
+    Task DeleteAsync(IReadOnlyList<OrderAttachment> attachments);
 }

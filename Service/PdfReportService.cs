@@ -1,7 +1,7 @@
 using System.Text;
-using VehicleDeclarations.Entity;
+using Orders.Entity;
 
-namespace VehicleDeclarations.Service;
+namespace Orders.Service;
 
 public sealed class PdfReportService : IPdfReportService
 {
@@ -12,12 +12,12 @@ public sealed class PdfReportService : IPdfReportService
     private const double SectionHeaderHeight = 18;
     private const double DefaultRowHeight = 31;
 
-    public byte[] Generate(VehicleSaleDeclaration declaration)
+    public byte[] Generate(Order order)
     {
-        return BuildPdf(BuildPageContent(declaration));
+        return BuildPdf(BuildPageContent(order));
     }
 
-    private static string BuildPageContent(VehicleSaleDeclaration declaration)
+    private static string BuildPageContent(Order order)
     {
         var builder = new StringBuilder();
         var y = PageHeight - Margin;
@@ -27,55 +27,55 @@ public sealed class PdfReportService : IPdfReportService
         DrawCenteredText(builder, "F1", 8, y - 23, "Formulaire administratif officiel");
         y -= 40;
 
-        y = DrawTopSummary(builder, y, declaration);
+        y = DrawTopSummary(builder, y, order);
         y -= 6;
         y = DrawSection(builder, y, "Informations du redacteur", 2, DefaultRowHeight,
         [
-            new FieldValue("Nom du redacteur", declaration.WriterName),
-            new FieldValue("Numero autorisation", declaration.AuthorizationNumber),
-            new FieldValue("Telephone", declaration.WriterPhone),
-            new FieldValue("Ville", declaration.City),
-            new FieldValue("Date / Heure", declaration.DeclarationDateTime.ToString("dd/MM/yyyy HH:mm"))
+            new FieldValue("Nom du redacteur", order.WriterName),
+            new FieldValue("Numero autorisation", order.AuthorizationNumber),
+            new FieldValue("Telephone", order.WriterPhone),
+            new FieldValue("Ville", order.City),
+            new FieldValue("Date / Heure", order.OrderDateTime.ToString("dd/MM/yyyy HH:mm"))
         ]);
         y -= 6;
         y = DrawSection(builder, y, "Informations du vendeur", 2, DefaultRowHeight,
         [
-            new FieldValue("Nom du vendeur", declaration.SellerName),
-            new FieldValue("Adresse", declaration.SellerAddress),
-            new FieldValue("N CIN du vendeur", declaration.SellerCin),
-            new FieldValue("Telephone", declaration.SellerPhone)
+            new FieldValue("Nom du vendeur", order.SellerName),
+            new FieldValue("Adresse", order.SellerAddress),
+            new FieldValue("N CIN du vendeur", order.SellerCin),
+            new FieldValue("Telephone", order.SellerPhone)
         ]);
         y -= 6;
-        y = DrawSection(builder, y, "Declaration et vehicule", 3, DefaultRowHeight,
+        y = DrawSection(builder, y, "Order et vehicule", 3, DefaultRowHeight,
         [
-            new FieldValue("Declare avoir vendu", declaration.SoldItemDescription),
-            new FieldValue("Numero d'ordre", declaration.OrderNumber),
-            new FieldValue("Titre de propriete", declaration.PropertyTitle),
-            new FieldValue("Type", declaration.VehicleType),
-            new FieldValue("Marque", declaration.VehicleBrand),
-            new FieldValue("Numero chassis", declaration.ChassisNumber)
+            new FieldValue("Declare avoir vendu", order.SoldItemDescription),
+            new FieldValue("Numero d'ordre", order.OrderNumber),
+            new FieldValue("Titre de propriete", order.PropertyTitle),
+            new FieldValue("Type", order.VehicleType),
+            new FieldValue("Marque", order.VehicleBrand),
+            new FieldValue("Numero chassis", order.ChassisNumber)
         ]);
         y -= 6;
         y = DrawSection(builder, y, "Informations de l'acheteur", 2, DefaultRowHeight,
         [
-            new FieldValue("Nom de l'acheteur", declaration.BuyerName),
-            new FieldValue("Adresse", declaration.BuyerAddress),
-            new FieldValue("N CIN de l'acheteur", declaration.BuyerCin),
-            new FieldValue("Telephone", declaration.BuyerPhone)
+            new FieldValue("Nom de l'acheteur", order.BuyerName),
+            new FieldValue("Adresse", order.BuyerAddress),
+            new FieldValue("N CIN de l'acheteur", order.BuyerCin),
+            new FieldValue("Telephone", order.BuyerPhone)
         ]);
         y -= 6;
         y = DrawSection(builder, y, "Documents et observation", 1, 35,
         [
-            new FieldValue("Observation", string.IsNullOrWhiteSpace(declaration.Observation) ? "Aucune" : declaration.Observation),
-            new FieldValue("Pieces jointes", SummarizeAttachments(declaration.Attachments))
+            new FieldValue("Observation", string.IsNullOrWhiteSpace(order.Observation) ? "Aucune" : order.Observation),
+            new FieldValue("Pieces jointes", SummarizeAttachments(order.Attachments))
         ], 2);
         y -= 8;
-        DrawSignatures(builder, y, declaration);
+        DrawSignatures(builder, y, order);
 
         return builder.ToString();
     }
 
-    private static double DrawTopSummary(StringBuilder builder, double top, VehicleSaleDeclaration declaration)
+    private static double DrawTopSummary(StringBuilder builder, double top, Order order)
     {
         var rowHeight = 27;
         var bottom = top - rowHeight;
@@ -83,9 +83,9 @@ public sealed class PdfReportService : IPdfReportService
 
         DrawFilledRectangle(builder, Margin, bottom, ContentWidth, rowHeight, "0.93 0.96 1");
         DrawRectangle(builder, Margin, bottom, ContentWidth, rowHeight);
-        DrawCell(builder, Margin, bottom, cellWidth, rowHeight, "Numero d'ordre", declaration.OrderNumber, 1);
-        DrawCell(builder, Margin + cellWidth, bottom, cellWidth, rowHeight, "Ville", declaration.City, 1);
-        DrawCell(builder, Margin + cellWidth * 2, bottom, cellWidth, rowHeight, "Date / Heure", declaration.DeclarationDateTime.ToString("dd/MM/yyyy HH:mm"), 1);
+        DrawCell(builder, Margin, bottom, cellWidth, rowHeight, "Numero d'ordre", order.OrderNumber, 1);
+        DrawCell(builder, Margin + cellWidth, bottom, cellWidth, rowHeight, "Ville", order.City, 1);
+        DrawCell(builder, Margin + cellWidth * 2, bottom, cellWidth, rowHeight, "Date / Heure", order.OrderDateTime.ToString("dd/MM/yyyy HH:mm"), 1);
 
         return bottom;
     }
@@ -129,7 +129,7 @@ public sealed class PdfReportService : IPdfReportService
         }
     }
 
-    private static void DrawSignatures(StringBuilder builder, double top, VehicleSaleDeclaration declaration)
+    private static void DrawSignatures(StringBuilder builder, double top, Order order)
     {
         var height = 76;
         var bottom = top - height;
@@ -138,9 +138,9 @@ public sealed class PdfReportService : IPdfReportService
         DrawRectangle(builder, Margin, bottom, ContentWidth, height);
         DrawFilledRectangle(builder, Margin, top - SectionHeaderHeight, ContentWidth, SectionHeaderHeight, "0.10 0.25 0.55");
         DrawText(builder, "F2", 8.5, Margin + 8, top - SectionHeaderHeight + 6, "SIGNATURES", "1 1 1");
-        DrawSignatureCell(builder, Margin, bottom, cellWidth, height - SectionHeaderHeight, "Signature du vendeur", declaration.SellerSignature);
-        DrawSignatureCell(builder, Margin + cellWidth, bottom, cellWidth, height - SectionHeaderHeight, "Signature du gerant", declaration.ManagerSignature);
-        DrawSignatureCell(builder, Margin + cellWidth * 2, bottom, cellWidth, height - SectionHeaderHeight, "Signature de l'acheteur", declaration.BuyerSignature);
+        DrawSignatureCell(builder, Margin, bottom, cellWidth, height - SectionHeaderHeight, "Signature du vendeur", order.SellerSignature);
+        DrawSignatureCell(builder, Margin + cellWidth, bottom, cellWidth, height - SectionHeaderHeight, "Signature du gerant", order.ManagerSignature);
+        DrawSignatureCell(builder, Margin + cellWidth * 2, bottom, cellWidth, height - SectionHeaderHeight, "Signature de l'acheteur", order.BuyerSignature);
         DrawText(builder, "F1", 6.5, Margin, bottom - 12, $"Document genere le {DateTime.Now:dd/MM/yyyy HH:mm}");
     }
 
@@ -285,7 +285,7 @@ public sealed class PdfReportService : IPdfReportService
         return $"{normalized[..Math.Max(0, maxLength - 3)]}...";
     }
 
-    private static string SummarizeAttachments(IReadOnlyList<DeclarationAttachment> attachments)
+    private static string SummarizeAttachments(IReadOnlyList<OrderAttachment> attachments)
     {
         if (attachments.Count == 0)
         {

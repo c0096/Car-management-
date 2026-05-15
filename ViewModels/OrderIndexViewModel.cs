@@ -1,10 +1,10 @@
-using VehicleDeclarations.Entity;
+using Orders.Entity;
 
-namespace VehicleDeclarations.ViewModels;
+namespace Orders.ViewModels;
 
-public sealed class DeclarationIndexViewModel
+public sealed class OrderIndexViewModel
 {
-    public PagedResult<VehicleSaleDeclaration> Results { get; init; } = new();
+    public PagedResult<Order> Results { get; init; } = new();
 
     public SearchOptions Options { get; init; } = new();
 

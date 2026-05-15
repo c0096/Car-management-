@@ -1,4 +1,4 @@
-namespace VehicleDeclarations.Service;
+namespace Orders.Service;
 
 public sealed class AuthOptions
 {

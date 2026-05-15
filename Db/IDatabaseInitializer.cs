@@ -1,4 +1,4 @@
-namespace VehicleDeclarations.Db;
+namespace Orders.Db;
 
 public interface IDatabaseInitializer
 {

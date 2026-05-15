@@ -1,13 +1,13 @@
 using System.Data;
 using Microsoft.Data.SqlClient;
-using VehicleDeclarations.Db;
-using VehicleDeclarations.Entity;
+using Orders.Db;
+using Orders.Entity;
 
-namespace VehicleDeclarations.Repository;
+namespace Orders.Repository;
 
 public sealed class UserRepository(ISqlConnectionFactory connectionFactory) : IUserRepository
 {
-    public async Task<AppUser?> GetByEmailAsync(string email)
+    public async Task<User?> GetByEmailAsync(string email)
     {
         await using var connection = connectionFactory.CreateConnection();
         await connection.OpenAsync();
@@ -18,7 +18,7 @@ public sealed class UserRepository(ISqlConnectionFactory connectionFactory) : IU
                 Email,
                 PasswordHash,
                 CreatedAt
-            FROM dbo.AppUsers
+            FROM dbo.Users
             WHERE NormalizedEmail = @NormalizedEmail;
             """;
 
@@ -40,17 +40,17 @@ public sealed class UserRepository(ISqlConnectionFactory connectionFactory) : IU
         await using var connection = connectionFactory.CreateConnection();
         await connection.OpenAsync();
 
-        await using var command = new SqlCommand("SELECT COUNT(1) FROM dbo.AppUsers;", connection);
+        await using var command = new SqlCommand("SELECT COUNT(1) FROM dbo.Users;", connection);
         return Convert.ToInt32(await command.ExecuteScalarAsync()) > 0;
     }
 
-    public async Task<int> CreateAsync(AppUser user)
+    public async Task<int> CreateAsync(User user)
     {
         await using var connection = connectionFactory.CreateConnection();
         await connection.OpenAsync();
 
         var sql = """
-            INSERT INTO dbo.AppUsers
+            INSERT INTO dbo.Users
             (
                 Email,
                 NormalizedEmail,
@@ -72,9 +72,9 @@ public sealed class UserRepository(ISqlConnectionFactory connectionFactory) : IU
         return Convert.ToInt32(await command.ExecuteScalarAsync());
     }
 
-    private static AppUser MapUser(SqlDataReader reader)
+    private static User MapUser(SqlDataReader reader)
     {
-        return new AppUser
+        return new User
         {
             Id = reader.GetInt32(reader.GetOrdinal("Id")),
             Email = reader.GetString(reader.GetOrdinal("Email")),

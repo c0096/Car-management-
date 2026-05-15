@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace VehicleDeclarations.ViewModels;
+namespace Orders.ViewModels;
 
 public sealed class LoginViewModel
 {

@@ -1,12 +1,12 @@
-using VehicleDeclarations.Entity;
+using Orders.Entity;
 
-namespace VehicleDeclarations.Repository;
+namespace Orders.Repository;
 
 public interface IUserRepository
 {
-    Task<AppUser?> GetByEmailAsync(string email);
+    Task<User?> GetByEmailAsync(string email);
 
     Task<bool> AnyAsync();
 
-    Task<int> CreateAsync(AppUser user);
+    Task<int> CreateAsync(User user);
 }

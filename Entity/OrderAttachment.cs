@@ -1,10 +1,10 @@
-namespace VehicleDeclarations.Entity;
+namespace Orders.Entity;
 
-public sealed class DeclarationAttachment
+public sealed class OrderAttachment
 {
     public int Id { get; set; }
 
-    public int DeclarationId { get; set; }
+    public int OrderId { get; set; }
 
     public string OriginalFileName { get; set; } = string.Empty;
 

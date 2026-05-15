@@ -1,6 +1,6 @@
 using Microsoft.Data.SqlClient;
 
-namespace VehicleDeclarations.Db;
+namespace Orders.Db;
 
 public interface ISqlConnectionFactory
 {

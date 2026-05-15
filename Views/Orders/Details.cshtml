@@ -1,13 +1,13 @@
-@model VehicleSaleDeclaration
+@model Order
 
 @{
-    ViewData["Title"] = "Détail de la déclaration";
+    ViewData["Title"] = "Détail de la commande";
 }
 
 <div class="page-heading">
     <div>
         <p class="eyebrow">Dossier @Model.OrderNumber</p>
-        <h1>Déclaration de vente</h1>
+        <h1>Commande de vente</h1>
     </div>
     <div class="header-actions">
         <a class="button button-primary" asp-action="Report" asp-route-id="@Model.Id">Télécharger PDF</a>
@@ -19,7 +19,7 @@
 <article class="official-report card">
     <div class="report-title">
         <span>Formulaire administratif</span>
-        <h2>Déclaration de vente de véhicule</h2>
+        <h2>Commande de vente de véhicule</h2>
         <p>N° ordre @Model.OrderNumber</p>
     </div>
 
@@ -30,7 +30,7 @@
             <dt>Numéro autorisation</dt><dd>@Model.AuthorizationNumber</dd>
             <dt>Téléphone du rédacteur</dt><dd>@Model.WriterPhone</dd>
             <dt>Ville</dt><dd>@Model.City</dd>
-            <dt>Date / Heure</dt><dd>@Model.DeclarationDateTime.ToString("dd/MM/yyyy HH:mm")</dd>
+            <dt>Date / Heure</dt><dd>@Model.OrderDateTime.ToString("dd/MM/yyyy HH:mm")</dd>
         </dl>
     </section>
 
@@ -45,7 +45,7 @@
     </section>
 
     <section>
-        <h3>Déclaration et véhicule</h3>
+        <h3>Commande et véhicule</h3>
         <dl class="details-grid">
             <dt>Déclare avoir vendu</dt><dd>@Model.SoldItemDescription</dd>
             <dt>Titre de propriété</dt><dd>@Model.PropertyTitle</dd>

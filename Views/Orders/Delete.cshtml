@@ -1,20 +1,20 @@
-@model VehicleSaleDeclaration
+@model Order
 
 @{
-    ViewData["Title"] = "Supprimer la déclaration";
+    ViewData["Title"] = "Supprimer la commande";
 }
 
 <div class="page-heading">
     <div>
         <p class="eyebrow">Suppression</p>
-        <h1>Supprimer la déclaration @Model.OrderNumber</h1>
+        <h1>Supprimer la commande @Model.OrderNumber</h1>
     </div>
     <a class="button" asp-action="Details" asp-route-id="@Model.Id">Retour</a>
 </div>
 
 <section class="card delete-card">
     <h2>Confirmer la suppression</h2>
-    <p>Cette action supprimera définitivement la déclaration et ses pièces jointes.</p>
+    <p>Cette action supprimera définitivement la commande et ses pièces jointes.</p>
     <dl class="details-grid">
         <dt>Vendeur</dt><dd>@Model.SellerName</dd>
         <dt>Acheteur</dt><dd>@Model.BuyerName</dd>

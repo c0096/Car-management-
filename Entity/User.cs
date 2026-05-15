@@ -1,8 +1,8 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace VehicleDeclarations.Entity;
+namespace Orders.Entity;
 
-public sealed class AppUser
+public sealed class User
 {
     public int Id { get; set; }
 

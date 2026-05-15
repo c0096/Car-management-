@@ -1,0 +1,30 @@
+@model Product
+
+@{
+    ViewData["Title"] = "Supprimer le produit";
+}
+
+<div class="page-heading">
+    <div>
+        <p class="eyebrow">Catalogue</p>
+        <h1>Supprimer @Model.Name</h1>
+    </div>
+    <a class="button" asp-action="Index">Retour</a>
+</div>
+
+<section class="card delete-card">
+    <h2>Confirmer la suppression</h2>
+    <p>Cette action supprimera définitivement le produit.</p>
+    <dl class="details-grid">
+        <dt>Nom</dt><dd>@Model.Name</dd>
+        <dt>Référence</dt><dd>@Model.Sku</dd>
+        <dt>Catégorie</dt><dd>@Model.CategoryName</dd>
+        <dt>Prix</dt><dd>@Model.UnitPrice.ToString("0.00")</dd>
+        <dt>Stock</dt><dd>@Model.StockQuantity</dd>
+    </dl>
+    <form asp-action="Delete" asp-route-id="@Model.Id" method="post" class="form-actions">
+        <input type="hidden" asp-for="Id" />
+        <button class="button button-danger" type="submit">Supprimer</button>
+        <a class="button" asp-action="Index">Annuler</a>
+    </form>
+</section>
